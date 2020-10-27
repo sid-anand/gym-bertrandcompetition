@@ -11,21 +11,31 @@ class BetrandCompetitionDiscreteEnv(Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self, n = 2, c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, pN = 1, pM = 10):
-
+        self.n = n
         self.action_space = np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m)
         self.observation_space = FixedList(n = k)
         self.reward_range = (-float('inf'), float('inf'))
         
 
-    def demand(a, p, mu):
+    def demand(self, a, p, mu):
         q = np.exp((a - p) / mu) / (np.sum(np.exp((a - p) / mu)) + np.exp(a[0] / mu))
         return q
 
     def step(self, action_n):
         obs_n = []
-        reward_n = []
+        reward_n = [0] * self.n
         done_n = []
         info_n = {'n': []}
+
+        self.observation_space.add(action_n)
+
+        min_price = np.min(actions_n)
+
+        if min_price != np.max(action_n):
+            reward_n[np.argmin(actions_n)] = self.demand(a, p, mu) * min_price
+
+        # action of first - action of second, but need actual demand function for this
+        # demand is amount of spend, if the price is high then the quantity demanded is low, vice versa
 
         return obs_n, reward_n, done_n, info_n
 
