@@ -7,12 +7,12 @@ from gym.utils import seeding
 try:
     import hfo_py
 except ImportError as e:
-    raise error.DependencyNotInstalled("{}. (HINT: you can install HFO dependencies with 'pip install gym[soccer].)'".format(e))
+    raise error.DependencyNotInstalled("{}. (HINT: you can install HFO dependencies with 'pip install gym[bertrandcompetition].)'".format(e))
 
 import logging
 logger = logging.getLogger(__name__)
 
-class SoccerEnv(gym.Env, utils.EzPickle):
+class BetrandCompetitionDiscreteEnv(gym.Env, utils.EzPickle):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
