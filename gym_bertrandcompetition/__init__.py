@@ -1,10 +1,10 @@
 from gym.envs.registration import register
 
 register(
-    id='BertrandCompetitionMarketDiscrete',
-    entry_point='gym_foo.envs:BertrandCompetitionMarketDiscreteEnv',
+    id='BertrandCompetitionDiscrete',
+    entry_point='gym_foo.envs:BertrandCompetitionDiscreteEnv',
 )
 register(
-    id='BertrandCompetitionMarketContinuous',
-    entry_point='gym_foo.envs:BertrandCompetitionMarketContinuousEnv',
+    id='BertrandCompetitionContinuous',
+    entry_point='gym_foo.envs:BertrandCompetitionContinuousEnv',
 )
