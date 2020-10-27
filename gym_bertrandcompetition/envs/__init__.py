@@ -1,2 +1,2 @@
-from gym_bertrandcompetition.envs.foo_env import FooEnv
-from gym_bertrandcompetition.envs.foo_extrahard_env import FooExtraHardEnv
+from gym_bertrandcompetition.envs.foo_env import BertrandCompetitionDiscreteEnv
+from gym_bertrandcompetition.envs.foo_extrahard_env import BertrandCompetitionContinuousEnv
