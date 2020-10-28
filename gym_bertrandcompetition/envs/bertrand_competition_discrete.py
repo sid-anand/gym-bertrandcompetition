@@ -33,6 +33,8 @@ class BertrandCompetitionDiscreteEnv(Env):
 
     def step(self, action_n):
 
+        print('Actions:', action_n)
+
         action_n = np.array(action_n)
 
         reward_n = np.array([0.0] * self.n)
@@ -47,7 +49,10 @@ class BertrandCompetitionDiscreteEnv(Env):
             min_price_idxs = np.where(action_n == min_price)[0]
             reward_n[min_price_idxs] = total_profit / min_price_idxs.size
 
-        print(self.obs_n, reward_n, done_n, info_n)
+        print('Obs:', self.obs_n)
+        print('Reward:', reward_n)
+        print('Done:', done_n)
+        print('Info:', info_n)
 
         return self.obs_n, reward_n, done_n, info_n
 
