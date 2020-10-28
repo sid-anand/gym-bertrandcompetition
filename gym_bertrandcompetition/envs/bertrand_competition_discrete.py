@@ -9,10 +9,12 @@ from fixedlist import FixedList
 
 # cd OneDrive/Documents/Research/gym-bertrandcompetition/gym_bertrandcompetition/envs
 
-class BetrandCompetitionDiscreteEnv(Env):
+class BertrandCompetitionDiscreteEnv(Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, n = 2, c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, pN = 1, pM = 10):
+    def __init__(self, n = 2, c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 2, pN = 1, pM = 10):
+        # change k back to 1
+
         self.n = n
         self.c_i = c_i
         self.a_0 = a_0
@@ -45,9 +47,6 @@ class BetrandCompetitionDiscreteEnv(Env):
             min_price_idxs = np.where(action_n == min_price)[0]
             reward_n[min_price_idxs] = total_profit / min_price_idxs.size
 
-        # action of first - action of second, but need actual demand function for this
-        # demand is amount of spend, if the price is high then the quantity demanded is low, vice versa
-
         print(self.obs_n, reward_n, done_n, info_n)
 
         return self.obs_n, reward_n, done_n, info_n
@@ -69,7 +68,7 @@ class BetrandCompetitionDiscreteEnv(Env):
         raise NotImplementedError
 
 
-bcd = BetrandCompetitionDiscreteEnv()
+bcd = BertrandCompetitionDiscreteEnv()
 for i in range(14):
     print()
     bcd.step([bcd.action_space[i], bcd.action_space[i]])
