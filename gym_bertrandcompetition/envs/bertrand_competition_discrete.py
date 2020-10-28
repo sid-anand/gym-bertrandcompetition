@@ -29,7 +29,7 @@ class BertrandCompetitionDiscreteEnv(Env):
     #     return q
 
     def demand(self, price):
-        return -price + 12
+        return np.max([-price + 12, 0])
 
     def step(self, action_n):
 
