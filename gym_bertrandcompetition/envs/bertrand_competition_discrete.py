@@ -27,8 +27,13 @@ class BertrandCompetitionDiscreteEnv(Env):
         self.n_agents = n
         self.c_i = c_i
         self.a_0 = a_0
-        self.action_space = np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m)
+        self.current_step = None
+        self.action_space = {0: np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m), 1: np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m)}
         self.observation_space = self.action_space.copy()
+
+        # self.action_space = Discrete(m)
+        # self.observation_space = Tuple(tuple(Discrete(2) for _ in range(n_agents)))
+
         self.reward_range = (-float('inf'), float('inf'))
         self.obs_n = FixedList(n = k)
         self.agent_dones = None
@@ -72,6 +77,7 @@ class BertrandCompetitionDiscreteEnv(Env):
     #     return self.reward_callback(agent, self.world)
 
     def reset(self):
+        self.current_step = 0
         self.agent_dones = [False for _ in range(self.n_agents)]
         obs_n = []
         return obs_n
@@ -80,10 +86,18 @@ class BertrandCompetitionDiscreteEnv(Env):
         raise NotImplementedError
 
 
+# bcd = BertrandCompetitionDiscreteEnv()
+# for i in range(14):
+#     print()
+#     bcd.step([bcd.action_space[i], bcd.action_space[i]])
+#     print()
+#     bcd.step([bcd.action_space[i], bcd.action_space[i+1]])
+# #     # bcd.step([bcd.action_space[i+1], bcd.action_space[i]])
+
 bcd = BertrandCompetitionDiscreteEnv()
 for i in range(14):
     print()
-    bcd.step([bcd.action_space[i], bcd.action_space[i]])
+    bcd.step([bcd.action_space[0][i], bcd.action_space[1][i]])
     print()
-    bcd.step([bcd.action_space[i], bcd.action_space[i+1]])
-    # bcd.step([bcd.action_space[i+1], bcd.action_space[i]])
+    bcd.step([bcd.action_space[0][i], bcd.action_space[1][i+1]])
+#     # bcd.step([bcd.action_space[i+1], bcd.action_space[i]])
