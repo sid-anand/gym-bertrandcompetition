@@ -83,6 +83,9 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # print('Done:', done)
         # print('Info:', info)
 
+        # print(actions_dict)
+        # print(reward)
+
         self.current_step += 1
 
         return observation, reward, done, info
