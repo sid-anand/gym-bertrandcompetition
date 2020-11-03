@@ -56,18 +56,15 @@ class BertrandCompetitionDiscreteEnv(Env):
 
         return self.obs_n, reward_n, done_n, info_n
 
-    # get reward for a particular agent
-    def _get_reward(self, agent):
-        if self.reward_callback is None:
-            return 0.0
-        return self.reward_callback(agent, self.world)
-
-    # set env action for a particular agent
-    def _set_action(self, action, agent, action_space, time=None):
-        raise NotImplementedError
+    # # get reward for a particular agent
+    # def _get_reward(self, agent):
+    #     if self.reward_callback is None:
+    #         return 0.0
+    #     return self.reward_callback(agent, self.world)
 
     def reset(self):
-        raise NotImplementedError
+        obs_n = []
+        return obs_n
 
     def render(self, mode='human'):
         raise NotImplementedError
