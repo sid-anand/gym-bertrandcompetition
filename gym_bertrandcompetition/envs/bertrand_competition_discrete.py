@@ -5,9 +5,18 @@ import sys
 from contextlib import closing
 import numpy as np
 from io import StringIO
-from fixedlist import FixedList
+# from fixedlist import FixedList
 
 # cd OneDrive/Documents/Research/gym-bertrandcompetition/gym_bertrandcompetition/envs
+
+class FixedList(list):
+
+    def __init__(self, n):
+        self.n = n
+
+    def add(self, item):
+        list.insert(self, 0, item)
+        if len(self) > self.n: del self[-1]
 
 class BertrandCompetitionDiscreteEnv(Env):
     metadata = {'render.modes': ['human']}
