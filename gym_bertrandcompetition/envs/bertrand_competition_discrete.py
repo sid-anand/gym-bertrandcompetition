@@ -15,14 +15,14 @@ class BertrandCompetitionDiscreteEnv(Env):
     def __init__(self, n = 2, c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 2, pN = 1, pM = 10):
         # change k back to 1
 
-        self.n = n
+        self.n_agents = n
         self.c_i = c_i
         self.a_0 = a_0
         self.action_space = np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m)
         self.observation_space = self.action_space.copy()
         self.reward_range = (-float('inf'), float('inf'))
         self.obs_n = FixedList(n = k)
-        
+        self.agent_dones = None
 
     # def demand(self, a, p, mu):
     #     q = np.exp((a - p) / mu) / (np.sum(np.exp((a - p) / mu)) + np.exp(self.a_0 / mu))
@@ -37,8 +37,8 @@ class BertrandCompetitionDiscreteEnv(Env):
 
         action_n = np.array(action_n)
 
-        reward_n = np.array([0.0] * self.n)
-        done_n = [True] * self.n
+        reward_n = np.array([0.0] * self.n_agents)
+        done_n = [True] * self.n_agents
         info_n = {'n': []}
 
         self.obs_n.add(action_n.tolist())
@@ -63,6 +63,7 @@ class BertrandCompetitionDiscreteEnv(Env):
     #     return self.reward_callback(agent, self.world)
 
     def reset(self):
+        self.agent_dones = [False for _ in range(self.n_agents)]
         obs_n = []
         return obs_n
 

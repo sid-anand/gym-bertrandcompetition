@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 register(
     id='BertrandCompetitionDiscrete-v0',
-    entry_point='gym_bertrandcompetition.envs:BertrandCompetitionDiscreteEnv',
+    entry_point='gym_bertrandcompetition.envs.bertrand_competition_discrete:BertrandCompetitionDiscreteEnv',
     max_episode_steps=100,
 )
 # register(
