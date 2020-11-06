@@ -33,7 +33,7 @@ trainer = DQNTrainer(config = config, env = 'Bertrand')
 
 s = "{:3d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:6.2f}"
 
-for i in range(15):
+for i in range(20):
     result = trainer.train()
 
     print(s.format(
