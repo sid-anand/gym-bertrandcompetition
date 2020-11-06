@@ -10,8 +10,6 @@ from ray.rllib.agents.dqn import DQNTrainer
 # from ray.rllib.agents.ppo import PPOAgent
 from ray.tune.logger import pretty_print
 
-# from ray.rllib.env import MultiAgentEnv
-
 # cd OneDrive/Documents/Research/gym-bertrandcompetition
 
 config = {
@@ -27,18 +25,17 @@ config = {
     'lr': 0.001
 }
 
-register_env('Bertrand', lambda env_config: BertrandCompetitionDiscreteEnv(num_agents=3))
+register_env('Bertrand', lambda env_config: BertrandCompetitionDiscreteEnv(num_agents=2))
 ray.init(num_cpus=4)
 trainer = DQNTrainer(config = config, env = 'Bertrand')
 
-# register_env('Bertrand', lambda env_config: BertrandCompetitionDiscreteEnv())
 # trainer = PPOAgent(config = config, env = 'Bertrand')
 
 s = "{:3d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:6.2f}"
 
-for i in range(20):
+for i in range(15):
     result = trainer.train()
-    # print(pretty_print(result))
+
     print(s.format(
     i + 1,
     result["episode_reward_min"],
