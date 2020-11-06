@@ -80,8 +80,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # print('Done:', done)
         # print('Info:', info)
 
-        print('Actions:', actions)
-        print('Reward:', reward)
+        # print('Actions:', actions)
+        # print('Reward:', reward)
 
         self.current_step += 1
 
