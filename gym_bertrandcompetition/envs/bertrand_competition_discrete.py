@@ -37,8 +37,6 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             monopoly_profit.append((i - c_i) * self.demand(self.a, i, self.mu))
         self.pM = price_range[np.argmax(monopoly_profit)]
 
-        
-
         self.action_space = Discrete(m)
         self.numeric_low = np.array([0] * (k * num_agents))
         numeric_high = np.array([m] * (k * num_agents))
@@ -82,8 +80,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # print('Done:', done)
         # print('Info:', info)
 
-        # print('Actions:', actions)
-        # print('Reward:', reward)
+        print('Actions:', actions)
+        print('Reward:', reward)
 
         self.current_step += 1
 
