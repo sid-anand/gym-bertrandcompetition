@@ -43,7 +43,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # self.observation_range = (-float('inf'), float('inf'))
         # self.obs_n = FixedList(n = k)
         # self.obs_n.add([0.0, 0.0])
-        self.a_space = np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m)
+        self.action_price_space = np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m)
         # self.obs_n = (a_space[0], a_space[0])
         # self.agent_dones = None
         self.reset()
@@ -57,17 +57,13 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
     def step(self, actions_dict):
 
-        actions = np.array(list(actions_dict.values())).flatten()
-
-        # print('Actions:', actions)
+        actions_idx = np.array(list(actions_dict.values())).flatten()
 
         reward = np.array([0.0] * self.num_agents)
-        # done = [True] * self.num_agents
-        # info = {'n': [0]}
 
-        # self.obs_n.add(actions.tolist())
-        # self.obs_n = tuple(actions)
-        observation = dict(zip(self.players, [tuple(actions) for i in range(self.num_agents)]))
+        observation = dict(zip(self.players, [tuple(actions_idx) for i in range(self.num_agents)]))
+
+        actions = self.action_price_space.take(actions_idx)
 
         if np.max(actions) > self.c_i:
             min_price = min(actions[actions > self.c_i], default = self.c_i)
@@ -83,8 +79,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # print('Done:', done)
         # print('Info:', info)
 
-        # print('Actions:', actions_dict)
-        # print('Reward:', reward)
+        print('Actions:', actions)
+        print('Reward:', reward)
 
         self.current_step += 1
 
