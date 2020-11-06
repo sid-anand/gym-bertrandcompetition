@@ -38,7 +38,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.pM = price_range[np.argmax(monopoly_profit)]
 
         self.action_space = Discrete(m)
-        # TODO: should the agents see the continuous prices for their action or observation?
+        # TODO: should the agents see the continuous prices for their action or observation? or the discrete prices?
         self.numeric_low = np.array([0] * (k * num_agents))
         numeric_high = np.array([m] * (k * num_agents))
         self.observation_space = Box(self.numeric_low, numeric_high, dtype=int)
@@ -81,8 +81,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # print('Done:', done)
         # print('Info:', info)
 
-        print('Actions:', actions)
-        print('Reward:', reward)
+        # print('Actions:', actions)
+        # print('Reward:', reward)
 
         self.current_step += 1
 
@@ -91,6 +91,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     def reset(self):
         self.current_step = 0
         observation = [self.numeric_low for _ in range(self.num_agents)]
+        # print(self.action_history)
         return dict(zip(self.players, observation))
 
     def render(self, mode='human'):
