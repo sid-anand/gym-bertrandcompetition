@@ -29,35 +29,41 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.num_agents = num_agents
         self.c_i = c_i
         self.a_0 = a_0
+        self.mu = mu
+        self.pN = c_i
         self.current_step = None
         self.max_steps = max_steps
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
-        # self.action_space = {0: np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m), 1: np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m)}
-        # self.observation_space = np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m)
+        self.a = np.array([2.0])
 
         self.action_space = Discrete(m)
-        # self.observation_space = Tuple(tuple(Discrete(m) for _ in range(num_agents)))
         self.observation_space = Tuple(tuple(Discrete(m) for _ in range(num_agents)))
 
+        monopoly_profit = []
+        price_range = np.arange(0, 100, 0.1)
+        for i in price_range:
+            monopoly_profit.append((i - c_i) * self.demand(self.a, i, self.mu))
+        self.pM = price_range[np.argmax(monopoly_profit)]
+        
         self.reward_range = (-float('inf'), float('inf'))
         # self.observation_range = (-float('inf'), float('inf'))
         # self.obs_n = FixedList(n = k)
         # self.obs_n.add([0.0, 0.0])
-        self.action_price_space = np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m)
-        # self.obs_n = (a_space[0], a_space[0])
-        # self.agent_dones = None
+        self.action_price_space = np.linspace(self.pN - xi * (self.pM - self.pN), self.pM + xi * (self.pM - self.pN), m)
+
         self.reset()
 
-    # def demand(self, a, p, mu):
-    #     q = np.exp((a - p) / mu) / (np.sum(np.exp((a - p) / mu)) + np.exp(self.a_0 / mu))
-    #     return q
+    def demand(self, a, p, mu):
+        q = np.exp((a - p) / mu) / (np.sum(np.exp((a - p) / mu)) + np.exp(self.a_0 / mu))
+        return q
 
-    def demand(self, price):
-        return np.max([-price + 12, 0])
+    # def demand(self, price):
+    #     return np.max([-price + 12, 0])
 
     def step(self, actions_dict):
 
         actions_idx = np.array(list(actions_dict.values())).flatten()
+        print('Actions Index:', actions_idx)
 
         reward = np.array([0.0] * self.num_agents)
 
@@ -67,7 +73,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         if np.max(actions) > self.c_i:
             min_price = min(actions[actions > self.c_i], default = self.c_i)
-            total_profit = (min_price - self.c_i) * self.demand(min_price) # self.demand(11, min_price, 0.05)
+            total_profit = (min_price - self.c_i) * self.demand(self.a, min_price, self.mu) # self.demand(min_price)
             min_price_idxs = np.where(actions == min_price)[0]
             reward[min_price_idxs] = total_profit / min_price_idxs.size
 
@@ -126,28 +132,27 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 #     bcd.step([a_space[i], a_space[i+1]])
 # #     # bcd.step([bcd.action_space[i+1], bcd.action_space[i]])
 
-# pN = 1
-# pM = 10
-# xi = 0.1
-# m = 15
+pN = 1
+pM = 10
+xi = 0.1
+m = 15
 
-# bcd = BertrandCompetitionDiscreteEnv()
-# obs = bcd.reset()
-# print(obs)
-# # print(bcd.observation_space)
-# a_space = np.linspace(pN - xi * (pM - pN), pM + xi * (pM - pN), m)
+bcd = BertrandCompetitionDiscreteEnv()
+obs = bcd.reset()
+print(obs)
+# print(bcd.observation_space)
 
-# for i in range(14):
-#     print()
-#     obs, rewards, dones, infos = bcd.step(actions_dict={'agent_0': a_space[i], 'agent_1': a_space[i]})
-#     print('Obs:', obs)
-#     print('Reward:', rewards)
-#     print('Done:', dones)
-#     print('Info:', infos)
-#     print()
-#     obs, rewards, dones, infos = bcd.step(actions_dict={'agent_0': a_space[i], 'agent_1': a_space[i+1]})
-#     print('Obs:', obs)
-#     print('Reward:', rewards)
-#     print('Done:', dones)
-#     print('Info:', infos)
-# #     # bcd.step([bcd.action_space[i+1], bcd.action_space[i]])
+for i in range(14):
+    print()
+    obs, rewards, dones, infos = bcd.step(actions_dict={'agent_0': i, 'agent_1': i})
+    print('Obs:', obs)
+    print('Reward:', rewards)
+    print('Done:', dones)
+    print('Info:', infos)
+    print()
+    obs, rewards, dones, infos = bcd.step(actions_dict={'agent_0': i, 'agent_1': i+1})
+    print('Obs:', obs)
+    print('Reward:', rewards)
+    print('Done:', dones)
+    print('Info:', infos)
+#     # bcd.step([bcd.action_space[i+1], bcd.action_space[i]])
