@@ -132,27 +132,27 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 #     bcd.step([a_space[i], a_space[i+1]])
 # #     # bcd.step([bcd.action_space[i+1], bcd.action_space[i]])
 
-pN = 1
-pM = 10
-xi = 0.1
-m = 15
+# pN = 1
+# pM = 10
+# xi = 0.1
+# m = 15
 
-bcd = BertrandCompetitionDiscreteEnv()
-obs = bcd.reset()
-print(obs)
-# print(bcd.observation_space)
+# bcd = BertrandCompetitionDiscreteEnv()
+# obs = bcd.reset()
+# print(obs)
+# # print(bcd.observation_space)
 
-for i in range(14):
-    print()
-    obs, rewards, dones, infos = bcd.step(actions_dict={'agent_0': i, 'agent_1': i})
-    print('Obs:', obs)
-    print('Reward:', rewards)
-    print('Done:', dones)
-    print('Info:', infos)
-    print()
-    obs, rewards, dones, infos = bcd.step(actions_dict={'agent_0': i, 'agent_1': i+1})
-    print('Obs:', obs)
-    print('Reward:', rewards)
-    print('Done:', dones)
-    print('Info:', infos)
-#     # bcd.step([bcd.action_space[i+1], bcd.action_space[i]])
+# for i in range(14):
+#     print()
+#     obs, rewards, dones, infos = bcd.step(actions_dict={'agent_0': i, 'agent_1': i})
+#     print('Obs:', obs)
+#     print('Reward:', rewards)
+#     print('Done:', dones)
+#     print('Info:', infos)
+#     print()
+#     obs, rewards, dones, infos = bcd.step(actions_dict={'agent_0': i, 'agent_1': i+1})
+#     print('Obs:', obs)
+#     print('Reward:', rewards)
+#     print('Done:', dones)
+#     print('Info:', infos)
+# #     # bcd.step([bcd.action_space[i+1], bcd.action_space[i]])
