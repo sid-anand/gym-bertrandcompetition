@@ -5,19 +5,26 @@ from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandC
 import ray
 import numpy as np
 from ray.tune.registry import register_env
-import ray.rllib.agents.a3c as a3c
+from ray.rllib.agents.a3c import A3CTrainer
 from ray.rllib.agents.dqn import DQNTrainer
-# from ray.rllib.agents.ppo import PPOAgent
+from ray.rllib.agents.ddpg import DDPGTrainer
+from ray.rllib.agents.ppo import PPOTrainer
 from ray.tune.logger import pretty_print
 
 # cd OneDrive/Documents/Research/gym-bertrandcompetition
 
+# Parameters
+num_agents = 2
+k = 1
+
+env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k)
+
 config = {
     'env_config': {
-        'num_agents': 2,
+        'num_agents': num_agents,
     },
     'env': 'Bertrand',
-    'num_workers': 2,
+    'num_workers': num_agents,
     # 'eager': True,
     # 'use_pytorch': False,
     'train_batch_size': 200,
@@ -25,10 +32,12 @@ config = {
     'lr': 0.001
 }
 
-register_env('Bertrand', lambda env_config: BertrandCompetitionDiscreteEnv(num_agents=2, k=2))
+register_env('Bertrand', lambda env_config: env)
 ray.init(num_cpus=4)
 trainer = DQNTrainer(config = config, env = 'Bertrand')
-
+# trainer = PPOTrainer(config = config, env = 'Bertrand')
+# trainer = A3CTrainer(config = config, env = 'Bertrand')
+# trainer = DDPGTrainer(config = config, env = 'Bertrand')
 # trainer = PPOAgent(config = config, env = 'Bertrand')
 
 s = "{:3d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:6.2f}"
@@ -42,3 +51,5 @@ for i in range(15):
     result["episode_reward_mean"],
     result["episode_reward_max"],
     result["episode_len_mean"]))
+
+# print(pretty_print(result))

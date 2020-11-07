@@ -6,7 +6,7 @@ import sys
 from contextlib import closing
 import numpy as np
 from io import StringIO
-# from fixedlist import FixedList
+import matplotlib.pyplot as plt
 
 # cd OneDrive/Documents/Research/gym-bertrandcompetition/gym_bertrandcompetition/envs
 
@@ -98,6 +98,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         reward = dict(zip(self.players, reward))
         done = {'__all__': self.current_step == self.max_steps}
+        # done = {'__all__': True}
         info = dict(zip(self.players, [{}]*self.num_agents))
 
         # print('Obs:', self.obs_n)
@@ -105,10 +106,17 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # print('Done:', done)
         # print('Info:', info)
 
-        print('Actions:', actions)
-        print('Reward:', reward)
+        # print('Actions:', actions)
+        # print('Reward:', reward)
 
         self.current_step += 1
+
+        if self.current_step == self.max_steps:
+            # plt.figure()
+            for player in self.players:
+                plt.plot(np.arange(len(self.action_history[player])),self.action_history[player])
+            # plt.show()
+            plt.savefig('action_history')
 
         return observation, reward, done, info
 
