@@ -25,7 +25,7 @@ config = {
     'lr': 0.001
 }
 
-register_env('Bertrand', lambda env_config: BertrandCompetitionDiscreteEnv(num_agents=2))
+register_env('Bertrand', lambda env_config: BertrandCompetitionDiscreteEnv(num_agents=2, k=2))
 ray.init(num_cpus=4)
 trainer = DQNTrainer(config = config, env = 'Bertrand')
 
@@ -33,7 +33,7 @@ trainer = DQNTrainer(config = config, env = 'Bertrand')
 
 s = "{:3d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:6.2f}"
 
-for i in range(20):
+for i in range(15):
     result = trainer.train()
 
     print(s.format(
