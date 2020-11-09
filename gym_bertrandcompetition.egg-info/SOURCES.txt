@@ -1,7 +1,0 @@
-README.md
-setup.py
-gym_bertrandcompetition.egg-info/PKG-INFO
-gym_bertrandcompetition.egg-info/SOURCES.txt
-gym_bertrandcompetition.egg-info/dependency_links.txt
-gym_bertrandcompetition.egg-info/requires.txt
-gym_bertrandcompetition.egg-info/top_level.txt

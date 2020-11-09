@@ -16,8 +16,9 @@ from ray.tune.logger import pretty_print
 # Parameters
 num_agents = 2
 k = 1
+max_steps = 500
 
-env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k)
+env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, max_steps=max_steps)
 
 config = {
     'env_config': {
