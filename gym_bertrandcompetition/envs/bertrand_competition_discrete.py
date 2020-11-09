@@ -121,14 +121,14 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         if self.plot and n == self.epochs * self.max_steps:
             x = np.arange(n)
             for player in self.players:
-                plt.plot(x, self.action_price_space.take(self.action_history[player]), label=player)
+                plt.plot(x, self.action_price_space.take(self.action_history[player]), alpha=0.75, label=player)
             plt.plot(x, np.repeat(self.pM, n), 'r--', label='Monopoly')
             plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
             plt.xlabel('Steps')
             plt.ylabel('Price')
             plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.epochs * self.max_steps) + ' Steps')
-            plt.legend(loc='upper right')
-            plt.savefig('action_history')
+            plt.legend(loc='upper left')
+            plt.savefig(self.trainer_choice + 'with' + str(self.num_agents) + 'agentsk' + str(self.k) + 'for' + str(self.epochs * self.max_steps) + 'Steps')
 
         return observation, reward, done, info
 

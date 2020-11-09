@@ -18,10 +18,10 @@ from ray.tune.logger import pretty_print
 num_agents = 2
 k = 1
 max_steps = 500
-epochs = 100
+epochs = 50
 plot = True
 # choose from DQN, PPO, A3C, DDPG
-trainer_choice = 'A3C'
+trainer_choice = 'DQN'
 
 env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, max_steps=max_steps, plot=plot, epochs=epochs, trainer_choice=trainer_choice)
 
