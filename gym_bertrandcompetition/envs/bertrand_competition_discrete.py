@@ -126,7 +126,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
             plt.xlabel('Steps')
             plt.ylabel('Price')
-            plt.title(self.trainer_choice + ' for ' + str(self.epochs * self.max_steps) + ' Steps')
+            plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.epochs * self.max_steps) + ' Steps')
             plt.legend(loc='upper right')
             plt.savefig('action_history')
 
