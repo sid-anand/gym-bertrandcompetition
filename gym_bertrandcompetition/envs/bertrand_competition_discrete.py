@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200):
+    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, plot=True, epochs=10, trainer_choice='DQN'):
 
         super(BertrandCompetitionDiscreteEnv, self).__init__()
         self.num_agents = num_agents
@@ -60,11 +60,16 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.reward_range = (-float('inf'), float('inf'))
         self.current_step = None
         self.max_steps = max_steps
+        self.plot = plot
+        self.epochs = epochs
+        self.trainer_choice = trainer_choice
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
+
         for i in range(num_agents):
             if self.players[i] not in self.action_history:
                 self.action_history[self.players[i]] = [0] * k
+
         self.reset()
 
     def demand(self, a, p, mu):
@@ -111,11 +116,18 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         self.current_step += 1
 
-        if self.current_step == self.max_steps:
-            # plt.figure()
+        n = len(self.action_history[self.players[0]])
+
+        if self.plot and n == self.epochs * self.max_steps:
+            x = np.arange(n)
             for player in self.players:
-                plt.plot(np.arange(len(self.action_history[player])),self.action_history[player])
-            # plt.show()
+                plt.plot(x, self.action_price_space.take(self.action_history[player]), label=player)
+            plt.plot(x, np.repeat(self.pM, n), 'r--', label='Monopoly')
+            plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
+            plt.xlabel('Steps')
+            plt.ylabel('Price')
+            plt.title(self.trainer_choice + ' for ' + str(self.epochs * self.max_steps) + ' Steps')
+            plt.legend(loc='upper right')
             plt.savefig('action_history')
 
         return observation, reward, done, info

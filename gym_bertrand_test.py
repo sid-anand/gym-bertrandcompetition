@@ -13,12 +13,17 @@ from ray.tune.logger import pretty_print
 
 # cd OneDrive/Documents/Research/gym-bertrandcompetition
 
+# CHANGE PARAMETERS FOR TESTING
 # Parameters
 num_agents = 2
 k = 1
 max_steps = 500
+epochs = 100
+plot = True
+# choose from DQN, PPO, A3C, DDPG
+trainer_choice = 'A3C'
 
-env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, max_steps=max_steps)
+env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, max_steps=max_steps, plot=plot, epochs=epochs, trainer_choice=trainer_choice)
 
 config = {
     'env_config': {
@@ -35,15 +40,19 @@ config = {
 
 register_env('Bertrand', lambda env_config: env)
 ray.init(num_cpus=4)
-trainer = DQNTrainer(config = config, env = 'Bertrand')
-# trainer = PPOTrainer(config = config, env = 'Bertrand')
-# trainer = A3CTrainer(config = config, env = 'Bertrand')
-# trainer = DDPGTrainer(config = config, env = 'Bertrand')
-# trainer = PPOAgent(config = config, env = 'Bertrand')
 
-s = "{:3d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:6.2f}"
+if trainer_choice == 'DQN':
+    trainer = DQNTrainer(config = config, env = 'Bertrand')
+elif trainer_choice == 'PPO':
+    trainer = PPOTrainer(config = config, env = 'Bertrand')
+elif trainer_choice == 'A3C':
+    trainer = A3CTrainer(config = config, env = 'Bertrand')
+elif trainer_choice == 'DDPG':
+    trainer = DDPGTrainer(config = config, env = 'Bertrand')
 
-for i in range(15):
+s = "Epoch {:3d} / Reward Min: {:6.2f} / Mean: {:6.2f} / Max: {:6.2f} / Steps {:6.2f}"
+
+for i in range(epochs):
     result = trainer.train()
 
     print(s.format(
