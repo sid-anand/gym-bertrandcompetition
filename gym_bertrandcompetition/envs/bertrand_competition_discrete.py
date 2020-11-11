@@ -137,20 +137,37 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.epochs * self.max_steps) + ' Steps')
             plt.legend(loc='upper left')
             plt.savefig(self.trainer_choice + 'with' + str(self.num_agents) + 'agentsk' + str(self.k) + 'for' + str(self.epochs * self.max_steps) + 'Steps')
+            plt.clf()
 
         return observation, reward, done, info
 
     def reset(self):
         self.current_step = 0
 
-        random_observation = np.random.randint(self.m, size=(self.k * self.num_agents))
+        # random_observation = np.random.randint(self.m, size=(self.k * self.num_agents))
+
+        # Reset to action of 0
+        # random_action = np.random.randint(1, size=self.num_agents)
+
+        # Reset to random action
+        random_action = np.random.randint(self.m, size=self.num_agents)
+
+        for i in range(random_action.size):
+            self.action_history[self.players[i]].append(random_action[i])
+
+        if self.k > 0:
+            obs_players = np.array([self.action_history[self.players[i]][-self.k:] for i in range(self.num_agents)]).flatten()
+            observation = dict(zip(self.players, [obs_players for i in range(self.num_agents)]))
+        else:
+            observation = dict(zip(self.players, [self.numeric_low for _ in range(self.num_agents)]))
         # print(random_observation)
 
-        observation = {}
-        for player in self.players:
-            observation[player] = random_observation
-            # self.action_history[player] = self.action_history[player] + observation[player].tolist()
-            # self.action_history[player].append(0)
+        # observation = {}
+        # for player in self.players:
+        #     observation[player] = random_observation
+        #     # self.action_history[player] = self.action_history[player] + observation[player].tolist()
+        #     self.action_history[player].append()
+        #     # self.action_history[player].append(0)
         return observation
 
     def render(self, mode='human'):

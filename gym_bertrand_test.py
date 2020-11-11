@@ -5,6 +5,7 @@ from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandC
 import ray
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 from ray.tune.registry import register_env
 from ray.rllib.agents.a3c import A3CTrainer
 from ray.rllib.agents.dqn import DQNTrainer
@@ -26,7 +27,7 @@ convergence = 5
 epochs = 50
 plot = True
 # choose from QL, DQN, PPO, A3C
-trainer_choice = 'DQN'
+trainer_choice = 'QL'
 
 env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, plot=plot, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
 
@@ -135,8 +136,21 @@ else:
 
         if i % 1 == 0:
             # clear_output(wait=True)
-            print(f"Epochs: {i}, \tLoop Count {loop_count}, \t Epsilon {epsilon}, \tMean Reward: {mean_reward}")
+            print(f"Epochs: {i}, \tLoop Count: {loop_count}, \t Epsilon: {epsilon}, \tMean Reward: {mean_reward}")
         
         # all_epochs.append(epochs)
         for agent in range(num_agents):
             all_rewards[agent].append(mean_reward)
+
+    num_actions = 1000
+    x = np.arange(num_actions)
+    # print(env.action_history[players[0]][-num_actions:])
+    # print(env.action_price_space.take(env.action_history[players[0]][-num_actions:]))
+    for player in players:
+        plt.plot(x, env.action_price_space.take(env.action_history[player][-num_actions:]), alpha=0.75, label=player)
+    plt.plot(x, np.repeat(env.pM, num_actions), 'r--', label='Monopoly')
+    plt.plot(x, np.repeat(env.pN, num_actions), 'b--', label='Nash')
+    plt.xlabel('Steps')
+    plt.ylabel('Price')
+    plt.savefig(env.trainer_choice + 'with' + str(env.num_agents) + 'agentsk' + str(env.k) + 'for' + str(env.epochs * env.max_steps) + 'Steps, Last Steps' + str(num_actions))
+    plt.clf()
