@@ -134,7 +134,10 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
     def reset(self):
         self.current_step = 0
+
+        # Randomize this so its different each time!
         observation = [self.numeric_low for _ in range(self.num_agents)]
+
         # print(self.action_history)
         return dict(zip(self.players, observation))
 
