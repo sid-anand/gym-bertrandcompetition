@@ -5,7 +5,6 @@ from gym.utils import colorize, seeding
 import sys
 from contextlib import closing
 import numpy as np
-import random
 from io import StringIO
 import matplotlib.pyplot as plt
 
