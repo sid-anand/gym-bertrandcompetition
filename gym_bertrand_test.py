@@ -83,12 +83,15 @@ else:
     all_rewards = [ [] for _ in range(num_agents) ] #store the penalties per episode
 
     for i in range(epochs * max_steps):
+
+        # Is this correct? Will it always be given this case? Need to code convergence.
         observation = env.reset()
 
         # epochs, total_reward = 0, 0
         reward_list = []
         done = False
         
+        # Currently only runs once each time, need to make this run until convergence.
         while not done:
 
             epsilon = np.exp(-1 * beta * i)
