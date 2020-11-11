@@ -22,12 +22,13 @@ num_agents = 2
 k = 1
 m = 15
 max_steps = 500
+convergence = 5
 epochs = 50
 plot = True
 # choose from QL, DQN, PPO, A3C
-trainer_choice = 'QL'
+trainer_choice = 'DQN'
 
-env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, plot=plot, epochs=epochs, trainer_choice=trainer_choice)
+env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, plot=plot, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
 
 config = {
     'env_config': {
@@ -82,16 +83,16 @@ else:
     # all_epochs = [] #store the number of epochs per episode
     all_rewards = [ [] for _ in range(num_agents) ] #store the penalties per episode
 
-    for i in range(epochs * max_steps):
+    # for i in range(epochs * max_steps):
+    for i in range(epochs):    
 
-        # Is this correct? Will it always be given this case? Need to code convergence.
         observation = env.reset()
 
         # epochs, total_reward = 0, 0
+        loop_count = 0
         reward_list = []
         done = False
         
-        # Currently only runs once each time, need to make this run until convergence.
         while not done:
 
             epsilon = np.exp(-1 * beta * i)
@@ -109,6 +110,7 @@ else:
                     actions_dict[players[agent]] = np.argmax(q_table[agent][observation])
 
             next_observation, reward, done, info = env.step(actions_dict)
+            done = done['__all__']
 
             next_observation = str(next_observation)
 
@@ -126,12 +128,14 @@ else:
             reward_list.append(reward[players[0]])
 
             observation = next_observation
+
+            loop_count += 1
             
         mean_reward = np.mean(reward_list)
 
-        if i % 500 == 0:
+        if i % 1 == 0:
             # clear_output(wait=True)
-            print(f"Episode: {i}, \t Epsilon {epsilon}, \tMean Reward: {mean_reward}")
+            print(f"Epochs: {i}, \tLoop Count {loop_count}, \t Epsilon {epsilon}, \tMean Reward: {mean_reward}")
         
         # all_epochs.append(epochs)
         for agent in range(num_agents):

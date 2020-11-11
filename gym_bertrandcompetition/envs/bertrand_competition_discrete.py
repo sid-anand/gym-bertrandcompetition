@@ -5,6 +5,7 @@ from gym.utils import colorize, seeding
 import sys
 from contextlib import closing
 import numpy as np
+import random
 from io import StringIO
 import matplotlib.pyplot as plt
 
@@ -13,7 +14,7 @@ import matplotlib.pyplot as plt
 class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, plot=True, epochs=10, trainer_choice='DQN'):
+    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, plot=True, epochs=10, convergence=5, trainer_choice='DQN'):
 
         super(BertrandCompetitionDiscreteEnv, self).__init__()
         self.num_agents = num_agents
@@ -23,6 +24,9 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         # Marginal Cost
         self.c_i = c_i
+
+        # Number of Discrete Prices
+        self.m = m
 
         # Product Quality Indexes
         self.a = np.array([c_i + a_minus_c_i])
@@ -62,13 +66,17 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.max_steps = max_steps
         self.plot = plot
         self.epochs = epochs
+        self.convergence = convergence
         self.trainer_choice = trainer_choice
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
 
         for i in range(num_agents):
             if self.players[i] not in self.action_history:
-                self.action_history[self.players[i]] = [0] * k
+                # self.action_history[self.players[i]] = [0] * k
+                self.action_history[self.players[i]] = []
+                for _ in range(convergence):
+                    self.action_history[self.players[i]].append(self.action_space.sample())
 
         self.reset()
 
@@ -102,7 +110,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             reward[min_price_idxs] = total_profit / min_price_idxs.size
 
         reward = dict(zip(self.players, reward))
-        done = {'__all__': self.current_step == self.max_steps}
+        # done = {'__all__': self.current_step == self.max_steps}
+        done = {'__all__': np.all(np.array(self.action_history[self.players[0]][-self.convergence:]) == self.action_history[self.players[0]][-1])}
         # done = {'__all__': True}
         info = dict(zip(self.players, [{}]*self.num_agents))
 
@@ -135,11 +144,15 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     def reset(self):
         self.current_step = 0
 
-        # Randomize this so its different each time!
-        observation = [self.numeric_low for _ in range(self.num_agents)]
+        random_observation = np.random.randint(self.m, size=(self.k * self.num_agents))
+        # print(random_observation)
 
-        # print(self.action_history)
-        return dict(zip(self.players, observation))
+        observation = {}
+        for player in self.players:
+            observation[player] = random_observation
+            # self.action_history[player] = self.action_history[player] + observation[player].tolist()
+            # self.action_history[player].append(0)
+        return observation
 
     def render(self, mode='human'):
         raise NotImplementedError
