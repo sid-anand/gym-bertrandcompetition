@@ -7,8 +7,10 @@ import numpy as np
 from ray.tune.registry import register_env
 from ray.rllib.agents.a3c import A3CTrainer
 from ray.rllib.agents.dqn import DQNTrainer
-from ray.rllib.agents.ddpg import DDPGTrainer
+# from ray.rllib.agents.ddpg import DDPGTrainer
 from ray.rllib.agents.ppo import PPOTrainer
+# from ray.rllib.agents.qmix import QMIXTrainer
+from ray.rllib.agents.pg import PGTrainer
 from ray.tune.logger import pretty_print
 
 # cd OneDrive/Documents/Research/gym-bertrandcompetition
@@ -20,7 +22,7 @@ k = 1
 max_steps = 500
 epochs = 50
 plot = True
-# choose from DQN, PPO, A3C, DDPG
+# choose from DQN, PPO, A3C
 trainer_choice = 'DQN'
 
 env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, max_steps=max_steps, plot=plot, epochs=epochs, trainer_choice=trainer_choice)
@@ -47,8 +49,6 @@ elif trainer_choice == 'PPO':
     trainer = PPOTrainer(config = config, env = 'Bertrand')
 elif trainer_choice == 'A3C':
     trainer = A3CTrainer(config = config, env = 'Bertrand')
-elif trainer_choice == 'DDPG':
-    trainer = DDPGTrainer(config = config, env = 'Bertrand')
 
 s = "Epoch {:3d} / Reward Min: {:6.2f} / Mean: {:6.2f} / Max: {:6.2f} / Steps {:6.2f}"
 
