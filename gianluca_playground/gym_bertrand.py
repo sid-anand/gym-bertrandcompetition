@@ -13,9 +13,9 @@ from gianluca_playground import logger
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
 num_agents = 2
-k = 0
+k = 1
 m = 15
-max_steps = 1000 #1000000
+max_steps = 1000000
 convergence = 10000
 epochs = 50
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     }
 
     # Logger
-    logger.configure(experiment_name="BertrandCompetitionDiscrete",)
+    logger.configure(experiment_name=f"Bertrand_competition_discrete_k_{k}_trainer_{trainer_choice}",)
 
     if trainer_choice != 'QL':
         register_env('Bertrand', lambda env_config: env)
