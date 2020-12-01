@@ -28,7 +28,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.m = m
 
         # Product Quality Indexes
-        self.a = np.array([c_i + a_minus_c_i])
+        self.a = np.array([c_i + a_minus_c_i] * num_agents)
 
         # Product Quality Index: Outside Good
         self.a_0 = a_0
@@ -37,13 +37,14 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.mu = mu
 
         # Nash Equilibrium Price
-        self.pN = c_i
+        self.pN = c_i #TODO: This is a reasonable approximation when mu = 0.01 (i.e., substitutes) but needs to be fixed in general
 
         # Monopoly Equilibrium Price
         monopoly_profit = []
         price_range = np.arange(0, 100, 0.1)
         for i in price_range:
-            monopoly_profit.append((i - c_i) * self.demand(self.a, i, self.mu))
+            p = [i] * num_agents
+            monopoly_profit.append((i - c_i) * self.demand(self.a, p, self.mu, 0) * num_agents)
         self.pM = price_range[np.argmax(monopoly_profit)]
 
         # MultiAgentEnv Action Space
@@ -79,9 +80,9 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         self.reset()
 
-    def demand(self, a, p, mu):
+    def demand(self, a, p, mu, agent_idx):
         ''' Demand as a function of product quality indexes, price, and mu. '''
-        q = np.exp((a - p) / mu) / (np.sum(np.exp((a - p) / mu)) + np.exp(self.a_0 / mu))
+        q = np.exp((a[agent_idx] - p[agent_idx]) / mu) / (np.sum(np.exp((a - p) / mu)) + np.exp(self.a_0 / mu))
         return q
 
     def step(self, actions_dict):
@@ -100,27 +101,15 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         else:
             observation = dict(zip(self.players, [self.numeric_low for _ in range(self.num_agents)]))
 
-        actions = self.action_price_space.take(actions_idx)
+        self.prices = self.action_price_space.take(actions_idx)
 
-        if np.max(actions) > self.c_i:
-            min_price = min(actions[actions > self.c_i], default = self.c_i)
-            total_profit = (min_price - self.c_i) * self.demand(self.a, min_price, self.mu)
-            min_price_idxs = np.where(actions == min_price)[0]
-            reward[min_price_idxs] = total_profit / min_price_idxs.size
+        for i in range(self.num_agents):
+            reward[i] = (self.prices[i] - self.c_i) * self.demand(self.a, self.prices, self.mu, i)
 
         reward = dict(zip(self.players, reward))
-        # done = {'__all__': self.current_step == self.max_steps}
-        done = {'__all__': np.all(np.array(self.action_history[self.players[0]][-self.convergence:]) == self.action_history[self.players[0]][-1])}
-        # done = {'__all__': True}
+        done = {'__all__': np.all(np.array(self.action_history[self.players[0]][-self.convergence:]) == self.action_history[self.players[0]][-1])
+                                   or self.current_step == self.max_steps}
         info = dict(zip(self.players, [{}]*self.num_agents))
-
-        # print('Obs:', self.obs_n)
-        # print('Reward:', reward)
-        # print('Done:', done)
-        # print('Info:', info)
-
-        # print('Actions:', actions)
-        # print('Reward:', reward)
 
         self.current_step += 1
 

@@ -1,0 +1,8 @@
+pip install gym
+pip install ray
+pip install matplotlib
+pip install dm-tree
+pip install pandas
+pip install 'ray[rllib]'
+pip install mpi4py
+pip install tensorflow

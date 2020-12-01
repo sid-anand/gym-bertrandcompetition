@@ -1,6 +1,4 @@
-import os, sys
-import gym
-from gym_bertrand.envs.bertrand_competition_discrete import BertrandCompetitionDiscrete
+from gianluca_playground.gym_bertrand import BertrandCompetitionDiscrete
 
 
 if __name__ == '__main__':
