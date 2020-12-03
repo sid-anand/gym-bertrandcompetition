@@ -1,5 +1,6 @@
 *.egg-info
 *.pyc
 .idea
-/logs
+logs/
+__pycache__/
 *~
