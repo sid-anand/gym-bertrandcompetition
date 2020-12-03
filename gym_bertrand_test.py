@@ -1,11 +1,10 @@
 import gym
 import gym_bertrandcompetition
 from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandCompetitionDiscreteEnv
+from agents.q_learner import Q_Learner
 
 import ray
 import numpy as np
-import random
-import matplotlib.pyplot as plt
 from ray.tune.registry import register_env
 from ray.rllib.agents.a3c import A3CTrainer
 from ray.rllib.agents.dqn import DQNTrainer
@@ -20,7 +19,7 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
 num_agents = 2
-k = 1
+k = 0
 m = 15
 max_steps = 500
 convergence = 5
@@ -37,8 +36,6 @@ config = {
     },
     'env': 'Bertrand',
     'num_workers': num_agents,
-    # 'eager': True,
-    # 'use_pytorch': False,
     'train_batch_size': 200,
     'rollout_fragment_length': 200,
     'lr': 0.001
@@ -66,91 +63,15 @@ if trainer_choice != 'QL':
         result["episode_reward_mean"],
         result["episode_reward_max"],
         result["episode_len_mean"]))
-
-    # print(pretty_print(result))
 else:
     # Q-learning
-
-    players = [ 'agent_' + str(i) for i in range(num_agents)]
-
-    q_table = [{}] * num_agents
 
     # Hyperparameters
     alpha = 0.05
     beta = 0.2
     gamma = 0.99
 
-    # For plotting metrics
-    # all_epochs = [] #store the number of epochs per episode
-    all_rewards = [ [] for _ in range(num_agents) ] #store the penalties per episode
+    q_learner = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, gamma=gamma, epochs=epochs)
 
-    # for i in range(epochs * max_steps):
-    for i in range(epochs):    
-
-        observation = env.reset()
-
-        # epochs, total_reward = 0, 0
-        loop_count = 0
-        reward_list = []
-        done = False
-        
-        while not done:
-
-            epsilon = np.exp(-1 * beta * i)
-
-            observation = str(observation)
-
-            actions_dict = {}
-            for agent in range(num_agents):
-                if observation not in q_table[agent]:
-                    q_table[agent][observation] = [0] * m
-
-                if random.uniform(0, 1) < epsilon:
-                    actions_dict[players[agent]] = env.action_space.sample()
-                else:
-                    actions_dict[players[agent]] = np.argmax(q_table[agent][observation])
-
-            next_observation, reward, done, info = env.step(actions_dict)
-            done = done['__all__']
-
-            next_observation = str(next_observation)
-
-            last_values = [0] * num_agents
-            Q_maxes = [0] * num_agents
-            for agent in range(num_agents):
-                if next_observation not in q_table[agent]:
-                    q_table[agent][next_observation] = [0] * m
-            
-                last_values[agent] = q_table[agent][observation][actions_dict[players[agent]]]
-                Q_maxes[agent] = np.max(q_table[agent][next_observation])
-            
-                q_table[agent][observation][actions_dict[players[agent]]] = ((1 - alpha) * last_values[agent]) + (alpha * (reward[players[agent]] + gamma * Q_maxes[agent]))
-
-            reward_list.append(reward[players[0]])
-
-            observation = next_observation
-
-            loop_count += 1
-            
-        mean_reward = np.mean(reward_list)
-
-        if i % 1 == 0:
-            # clear_output(wait=True)
-            print(f"Epochs: {i}, \tLoop Count: {loop_count}, \t Epsilon: {epsilon}, \tMean Reward: {mean_reward}")
-        
-        # all_epochs.append(epochs)
-        for agent in range(num_agents):
-            all_rewards[agent].append(mean_reward)
-
-    num_actions = 1000
-    x = np.arange(num_actions)
-    # print(env.action_history[players[0]][-num_actions:])
-    # print(env.action_price_space.take(env.action_history[players[0]][-num_actions:]))
-    for player in players:
-        plt.plot(x, env.action_price_space.take(env.action_history[player][-num_actions:]), alpha=0.75, label=player)
-    plt.plot(x, np.repeat(env.pM, num_actions), 'r--', label='Monopoly')
-    plt.plot(x, np.repeat(env.pN, num_actions), 'b--', label='Nash')
-    plt.xlabel('Steps')
-    plt.ylabel('Price')
-    plt.savefig(env.trainer_choice + 'with' + str(env.num_agents) + 'agentsk' + str(env.k) + 'for' + str(env.epochs * env.max_steps) + 'Steps, Last Steps' + str(num_actions))
-    plt.clf()
+    q_learner.train()
+    q_learner.plot(last_n=1000)
