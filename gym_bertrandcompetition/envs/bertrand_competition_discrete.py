@@ -37,11 +37,21 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.mu = mu
 
         # Nash Equilibrium Price
-        self.pN = c_i #TODO: This is a reasonable approximation when mu = 0.01 (i.e., substitutes) but needs to be fixed in general
+        price_range = np.arange(0, 10, 0.01)
+        nash_temp = 0
+        for i in price_range:
+            p = [i] * num_agents
+            first_player_profit = (i - c_i) * self.demand(self.a, p, self.mu, 0)
+            new_profit = []
+            for j in price_range:
+                p[0] = j
+                new_profit.append((j - c_i) * self.demand(self.a, p, self.mu, 0))
+            if first_player_profit >= np.max(new_profit):
+                nash_temp = i
+        self.pN = nash_temp
 
         # Monopoly Equilibrium Price
         monopoly_profit = []
-        price_range = np.arange(0, 100, 0.1)
         for i in price_range:
             p = [i] * num_agents
             monopoly_profit.append((i - c_i) * self.demand(self.a, p, self.mu, 0) * num_agents)
