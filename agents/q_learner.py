@@ -19,8 +19,9 @@ class Q_Learner():
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
 
     def train(self):
+        '''Train to fill q_table'''
 
-        q_table = [{}] * self.num_agents
+        self.q_table = [{}] * self.num_agents
 
         # For plotting metrics
         # all_epochs = [] #store the number of epochs per episode
@@ -43,13 +44,13 @@ class Q_Learner():
 
                 actions_dict = {}
                 for agent in range(self.num_agents):
-                    if observation not in q_table[agent]:
-                        q_table[agent][observation] = [0] * self.m
+                    if observation not in self.q_table[agent]:
+                        self.q_table[agent][observation] = [0] * self.m
 
                     if random.uniform(0, 1) < epsilon:
                         actions_dict[self.players[agent]] = self.env.action_space.sample()
                     else:
-                        actions_dict[self.players[agent]] = np.argmax(q_table[agent][observation])
+                        actions_dict[self.players[agent]] = np.argmax(self.q_table[agent][observation])
 
                 next_observation, reward, done, info = self.env.step(actions_dict)
                 done = done['__all__']
@@ -59,13 +60,13 @@ class Q_Learner():
                 last_values = [0] * self.num_agents
                 Q_maxes = [0] * self.num_agents
                 for agent in range(self.num_agents):
-                    if next_observation not in q_table[agent]:
-                        q_table[agent][next_observation] = [0] * self.m
+                    if next_observation not in self.q_table[agent]:
+                        self.q_table[agent][next_observation] = [0] * self.m
                 
-                    last_values[agent] = q_table[agent][observation][actions_dict[self.players[agent]]]
-                    Q_maxes[agent] = np.max(q_table[agent][next_observation])
+                    last_values[agent] = self.q_table[agent][observation][actions_dict[self.players[agent]]]
+                    Q_maxes[agent] = np.max(self.q_table[agent][next_observation])
                 
-                    q_table[agent][observation][actions_dict[self.players[agent]]] = ((1 - self.alpha) * last_values[agent]) + (self.alpha * (reward[self.players[agent]] + self.delta * Q_maxes[agent]))
+                    self.q_table[agent][observation][actions_dict[self.players[agent]]] = ((1 - self.alpha) * last_values[agent]) + (self.alpha * (reward[self.players[agent]] + self.delta * Q_maxes[agent]))
 
                 reward_list.append(reward[self.players[0]])
 

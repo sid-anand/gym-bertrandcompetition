@@ -113,21 +113,6 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         self.current_step += 1
 
-        n = len(self.action_history[self.players[0]])
-
-        if self.plot and n == self.epochs * self.max_steps:
-            x = np.arange(n)
-            for player in self.players:
-                plt.plot(x, self.action_price_space.take(self.action_history[player]), alpha=0.75, label=player)
-            plt.plot(x, np.repeat(self.pM, n), 'r--', label='Monopoly')
-            plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
-            plt.xlabel('Steps')
-            plt.ylabel('Price')
-            plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.epochs * self.max_steps) + ' Steps')
-            plt.legend(loc='upper left')
-            plt.savefig('./figures/' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.epochs * self.max_steps) + '_steps')
-            plt.clf()
-
         return observation, reward, done, info
 
     def reset(self):
@@ -146,6 +131,21 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             observation = dict(zip(self.players, [self.numeric_low for _ in range(self.num_agents)]))
             
         return observation
+
+    def plot(self):
+        '''Plot action history.'''
+        n = len(self.action_history[self.players[0]])
+        x = np.arange(n)
+        for player in self.players:
+            plt.plot(x, self.action_price_space.take(self.action_history[player]), alpha=0.75, label=player)
+        plt.plot(x, np.repeat(self.pM, n), 'r--', label='Monopoly')
+        plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
+        plt.xlabel('Steps')
+        plt.ylabel('Price')
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.epochs * self.max_steps) + ' Steps')
+        plt.legend(loc='upper left')
+        plt.savefig('./figures/' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.epochs * self.max_steps) + '_steps')
+        plt.clf()
 
     def render(self, mode='human'):
         raise NotImplementedError

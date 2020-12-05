@@ -5,6 +5,7 @@ from agents.q_learner import Q_Learner
 
 import ray
 import numpy as np
+import matplotlib.pyplot as plt
 from ray.tune.registry import register_env
 from ray.rllib.agents.a3c import A3CTrainer
 from ray.rllib.agents.dqn import DQNTrainer
