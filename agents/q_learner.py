@@ -6,14 +6,14 @@ from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandC
 
 class Q_Learner():
 
-    def __init__(self, env, num_agents=2, m=15, alpha=0.05, beta=0.2, gamma=0.99, epochs=50):
+    def __init__(self, env, num_agents=2, m=15, alpha=0.05, beta=0.2, delta=0.99, epochs=50):
 
         self.env = env
         self.num_agents = num_agents
         self.m = m
         self.alpha = alpha
         self.beta = beta
-        self.gamma = gamma
+        self.delta = delta
         self.epochs = epochs
 
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
@@ -65,7 +65,7 @@ class Q_Learner():
                     last_values[agent] = q_table[agent][observation][actions_dict[self.players[agent]]]
                     Q_maxes[agent] = np.max(q_table[agent][next_observation])
                 
-                    q_table[agent][observation][actions_dict[self.players[agent]]] = ((1 - self.alpha) * last_values[agent]) + (self.alpha * (reward[self.players[agent]] + self.gamma * Q_maxes[agent]))
+                    q_table[agent][observation][actions_dict[self.players[agent]]] = ((1 - self.alpha) * last_values[agent]) + (self.alpha * (reward[self.players[agent]] + self.delta * Q_maxes[agent]))
 
                 reward_list.append(reward[self.players[0]])
 

@@ -19,7 +19,7 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
 num_agents = 2
-k = 0
+k = 1
 m = 15
 max_steps = 500
 convergence = 5
@@ -69,9 +69,9 @@ else:
     # Hyperparameters
     alpha = 0.05
     beta = 0.2
-    gamma = 0.99
+    delta = 0.99
 
-    q_learner = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, gamma=gamma, epochs=epochs)
+    q_learner = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, epochs=epochs)
 
     q_learner.train()
     q_learner.plot(last_n=1000)
