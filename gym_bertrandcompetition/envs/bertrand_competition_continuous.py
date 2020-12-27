@@ -164,7 +164,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         n = len(self.action_history[self.players[0]])
         x = np.arange(n)
         for player in self.players:
-            plt.plot(x, self.action_price_space.take(self.action_history[player]), alpha=0.75, label=player)
+            plt.plot(x, self.action_history[player], alpha=0.75, label=player)
         plt.plot(x, np.repeat(self.pM, n), 'r--', label='Monopoly')
         plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
         plt.xlabel('Steps')

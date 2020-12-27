@@ -25,7 +25,7 @@ k = 1
 m = 15
 max_steps = 1000
 convergence = 5
-epochs = 50
+epochs = 5
 # choose from QL, DQN, PPO, A3C
 trainer_choice = 'A3C'
 
