@@ -1,6 +1,7 @@
 import gym
 import gym_bertrandcompetition
 from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandCompetitionDiscreteEnv
+from gym_bertrandcompetition.envs.bertrand_competition_continuous import BertrandCompetitionContinuousEnv
 from agents.q_learner import Q_Learner
 
 import ray
@@ -22,13 +23,14 @@ from ray.tune.logger import pretty_print
 num_agents = 2
 k = 1
 m = 15
-max_steps = 500
+max_steps = 1000
 convergence = 5
 epochs = 50
 # choose from QL, DQN, PPO, A3C
-trainer_choice = 'QL'
+trainer_choice = 'A3C'
 
-env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
+# env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
+env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, epochs=epochs, trainer_choice=trainer_choice)
 
 config = {
     'env_config': {
@@ -76,5 +78,13 @@ else:
     q_learner.train()
     q_learner.plot(last_n=1000)
     q_learner.plot(last_n=100)
+
+    observation = env.deviate(direction='down')
+    q_learner.eval(observation, n=10)
+    q_learner.plot(last_n=20, title_str='down_deviation_')
+
+    observation = env.deviate(direction='up')
+    q_learner.eval(observation, n=10)
+    q_learner.plot(last_n=20, title_str='up_deviation_')
 
 env.plot()

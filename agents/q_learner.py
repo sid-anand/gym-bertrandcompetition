@@ -83,7 +83,26 @@ class Q_Learner():
             for agent in range(self.num_agents):
                 all_rewards[agent].append(mean_reward)
 
-    def plot(self, last_n = 1000):
+    def eval(self, observation, n=20):
+        '''Eval q_table'''
+
+        for i in range(n):
+
+            observation = str(observation)
+
+            actions_dict = {}
+            for agent in range(self.num_agents):
+                if observation not in self.q_table[agent]:
+                    self.q_table[agent][observation] = [0] * self.m
+
+                actions_dict[self.players[agent]] = np.argmax(self.q_table[agent][observation])
+
+            next_observation, reward, done, info = self.env.step(actions_dict)
+            done = done['__all__']
+
+            observation = str(next_observation)
+
+    def plot(self, last_n = 1000, title_str=''):
         x = np.arange(last_n)
         for player in self.players:
             plt.plot(x, self.env.action_price_space.take(self.env.action_history[player][-last_n:]), alpha=0.75, label=player)
@@ -92,5 +111,5 @@ class Q_Learner():
         plt.xlabel('Steps')
         plt.ylabel('Price')
         plt.legend()
-        plt.savefig('./figures/' + self.env.trainer_choice + '_with_' + str(self.env.num_agents) + '_agents_k_' + str(self.env.k) + '_for_' + str(self.env.epochs * self.env.max_steps) + '_steps_last_steps_' + str(last_n))
+        plt.savefig('./figures/' + title_str + self.env.trainer_choice + '_with_' + str(self.env.num_agents) + '_agents_k_' + str(self.env.k) + '_for_' + str(self.env.epochs * self.env.max_steps) + '_steps_last_steps_' + str(last_n))
         plt.clf()
