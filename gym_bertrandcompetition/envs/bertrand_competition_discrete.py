@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, plot=True, epochs=10, convergence=5, trainer_choice='DQN'):
+    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, epochs=10, convergence=5, trainer_choice='DQN'):
 
         super(BertrandCompetitionDiscreteEnv, self).__init__()
         self.num_agents = num_agents
@@ -37,7 +37,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.mu = mu
 
         # Nash Equilibrium Price
-        price_range = np.arange(0, 10, 0.01)
+        # Make sure this tries all possibilities
+        price_range = np.arange(0, 2.5, 0.01)
         nash_temp = 0
         for i in price_range:
             p = [i] * num_agents
@@ -49,6 +50,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             if first_player_profit >= np.max(new_profit):
                 nash_temp = i
         self.pN = nash_temp
+        print('Nash Price:', self.pN)
 
         # Monopoly Equilibrium Price
         monopoly_profit = []
@@ -56,6 +58,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             p = [i] * num_agents
             monopoly_profit.append((i - c_i) * self.demand(self.a, p, self.mu, 0) * num_agents)
         self.pM = price_range[np.argmax(monopoly_profit)]
+        print('Monopoly Price:', self.pM)
 
         # MultiAgentEnv Action Space
         self.action_space = Discrete(m)
@@ -74,7 +77,6 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.reward_range = (-float('inf'), float('inf'))
         self.current_step = None
         self.max_steps = max_steps
-        self.plot = plot
         self.epochs = epochs
         self.convergence = convergence
         self.trainer_choice = trainer_choice

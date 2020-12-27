@@ -25,11 +25,10 @@ m = 15
 max_steps = 500
 convergence = 5
 epochs = 50
-plot = True
 # choose from QL, DQN, PPO, A3C
 trainer_choice = 'QL'
 
-env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, plot=plot, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
+env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
 
 config = {
     'env_config': {
@@ -76,3 +75,6 @@ else:
 
     q_learner.train()
     q_learner.plot(last_n=1000)
+    q_learner.plot(last_n=100)
+
+env.plot()

@@ -84,15 +84,13 @@ class Q_Learner():
                 all_rewards[agent].append(mean_reward)
 
     def plot(self, last_n = 1000):
-
         x = np.arange(last_n)
-        # print(env.action_history[players[0]][-num_actions:])
-        # print(env.action_price_space.take(env.action_history[players[0]][-num_actions:]))
         for player in self.players:
             plt.plot(x, self.env.action_price_space.take(self.env.action_history[player][-last_n:]), alpha=0.75, label=player)
         plt.plot(x, np.repeat(self.env.pM, last_n), 'r--', label='Monopoly')
         plt.plot(x, np.repeat(self.env.pN, last_n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
-        plt.savefig('./figures/' + self.env.trainer_choice + '_with_' + str(self.env.num_agents) + '_agents_k_' + str(self.env.k) + '_for_' + str(self.env.epochs * self.env.max_steps) + '_steps,last_steps_' + str(last_n))
+        plt.legend()
+        plt.savefig('./figures/' + self.env.trainer_choice + '_with_' + str(self.env.num_agents) + '_agents_k_' + str(self.env.k) + '_for_' + str(self.env.epochs * self.env.max_steps) + '_steps_last_steps_' + str(last_n))
         plt.clf()
