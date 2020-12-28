@@ -84,7 +84,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         self.trainer_choice = trainer_choice
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
-        self.savefile = './arrays/' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.epochs * self.max_steps) + '_steps'
+        self.savefile = 'continuous_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.epochs * self.max_steps) + '_steps'
 
         for i in range(num_agents):
             if self.players[i] not in self.action_history:
@@ -104,7 +104,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
 
         actions_list = np.array(list(actions_dict.values())).flatten()
 
-        with open(self.savefile + '.pkl', 'ab') as f:
+        with open('./arrays/' + self.savefile + '.pkl', 'ab') as f:
             pickle.dump(actions_list, f)
 
         for i in range(actions_list.size):
@@ -178,7 +178,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.ylabel('Price')
         plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.epochs * self.max_steps) + ' Steps')
         plt.legend(loc='upper left')
-        plt.savefig('./figures/' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.epochs * self.max_steps) + '_steps')
+        plt.savefig('./figures/' + self.savefile)
         plt.clf()
 
     def render(self, mode='human'):

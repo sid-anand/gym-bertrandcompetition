@@ -7,6 +7,7 @@ from contextlib import closing
 import numpy as np
 from io import StringIO
 import matplotlib.pyplot as plt
+import pickle
 
 # cd OneDrive/Documents/Research/gym-bertrandcompetition/gym_bertrandcompetition/envs
 
@@ -76,7 +77,6 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             self.observation_space = Box(self.numeric_low, numeric_high, dtype=int)
 
         self.action_price_space = np.linspace(self.pN - xi * (self.pM - self.pN), self.pM + xi * (self.pM - self.pN), m)
-        print(self.action_price_space)
         self.reward_range = (-float('inf'), float('inf'))
         self.current_step = None
         self.max_steps = max_steps
@@ -85,6 +85,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.trainer_choice = trainer_choice
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
+        self.savefile = 'discrete_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.epochs * self.max_steps) + '_steps'
 
         for i in range(num_agents):
             if self.players[i] not in self.action_history:
@@ -103,6 +104,9 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         ''' MultiAgentEnv Step '''
 
         actions_idx = np.array(list(actions_dict.values())).flatten()
+
+        with open('./arrays/' + self.savefile + '.pkl', 'ab') as f:
+            pickle.dump(actions_idx, f)
 
         for i in range(actions_idx.size):
             self.action_history[self.players[i]].append(actions_idx[i])
@@ -176,7 +180,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.ylabel('Price')
         plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.epochs * self.max_steps) + ' Steps')
         plt.legend(loc='upper left')
-        plt.savefig('./figures/' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.epochs * self.max_steps) + '_steps')
+        plt.savefig('./figures/' + self.savefile)
         plt.clf()
 
     def render(self, mode='human'):

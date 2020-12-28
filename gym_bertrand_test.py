@@ -28,11 +28,14 @@ m = 15
 max_steps = 1000
 convergence = 5
 epochs = 3
+state_space = 'continuous' # 'discrete' or 'continuous'
 # choose from QL, DQN, PPO, A3C
 trainer_choice = 'A3C'
 
-# env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
-env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, epochs=epochs, trainer_choice=trainer_choice)
+if state_space == 'discrete':
+    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
+elif state_space == 'continuous':
+    env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, epochs=epochs, trainer_choice=trainer_choice)
 
 config = {
     'env_config': {
@@ -61,7 +64,7 @@ if trainer_choice != 'QL':
 
     s = "Epoch {:3d} / Reward Min: {:6.2f} / Mean: {:6.2f} / Max: {:6.2f} / Steps {:6.2f}"
 
-    savefile = './arrays/' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(epochs * max_steps) + '_steps.pkl'
+    savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(epochs * max_steps) + '_steps.pkl'
 
     if os.path.isfile(savefile):
         os.remove(savefile)
