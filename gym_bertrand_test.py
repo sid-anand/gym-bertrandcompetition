@@ -65,13 +65,9 @@ if trainer_choice != 'QL':
 
     if os.path.isfile(savefile):
         os.remove(savefile)
-        # with open(savefile, 'w') as f:
-        #     f.write('[')
 
     for i in range(epochs):
         result = trainer.train()
-
-        # print(result)
 
         print(s.format(
         i + 1,
@@ -79,38 +75,6 @@ if trainer_choice != 'QL':
         result["episode_reward_mean"],
         result["episode_reward_max"],
         result["episode_len_mean"]))
-
-        # if i % 1 == 0:
-        #     checkpoint = trainer.save()
-        #     print("checkpoint saved at", checkpoint)
-
-    # trainer.compute_action(observation)
-
-    # policy = trainer.get_policy()
-    # model = policy.model
-    # print(model.base_model.summary())
-
-    # with open(self.savefile + '.pkl', 'rb'):
-    #     print(pickle.load(f))
-
-    # print(pickle.load(open(self.savefile + '.pkl', 'rb')))
-
-    # with open(savefile, 'a') as f:
-    #     f.write(']')
-
-    # with open(savefile, 'r') as f:
-    #     array_string = f.read() + ']'
-
-    # print(list(array_string))
-    # print(np.fromstring(array_string))
-
-    # action_history = []
-    # with open(savefile, 'rb') as f:
-    #     try:
-    #         while True:
-    #             action_history.append(pickle.load(f))
-    #     except EOFError:
-    #         pass
 
     action_history_list = []
     with open(savefile, 'rb') as f:

@@ -104,35 +104,6 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
 
         actions_list = np.array(list(actions_dict.values())).flatten()
 
-        # existing_actions_list = np.load(self.savefile + '.pkl.npy', allow_pickle=True) if os.path.isfile(self.savefile + '.pkl.npy') else actions_list
-        # np.save(self.savefile + '.pkl', np.vstack((existing_actions_list, actions_list)), allow_pickle=True)
-
-        # if os.path.isfile(self.savefile + '.pkl'): 
-        #     with open(self.savefile + '.pkl', 'rb') as f:
-        #         existing_actions_list = pickle.load(f) 
-        # else:
-        #     existing_actions_list = actions_list
-
-        # with open(self.savefile + '.pkl', 'wb') as f:
-        #     pickle.dump(np.vstack((existing_actions_list, actions_list)), f)
-
-        # if os.path.isfile(self.savefile + '.txt'): 
-        #     with open(self.savefile + '.txt', 'r') as f:
-        #         print(json.load(f))
-        #         existing_actions_list = np.array(json.load(f))
-        # else:
-        #     existing_actions_list = actions_list
-
-        # with open(self.savefile + '.txt', 'w') as f:
-        #     json.dump(np.vstack((existing_actions_list, actions_list)).tolist(), f)
-
-        # if os.path.isfile(self.savefile + '.txt'): 
-        #     with open(self.savefile + '.txt', 'a') as f:
-        #         f.write(str(actions_list.tolist()) + ', ')
-
-        # existing_actions_list = pickle.load(open(self.savefile + '.pkl', 'rb')) if os.path.isfile(self.savefile + '.pkl') else actions_list
-        # pickle.dump(np.vstack((existing_actions_list, actions_list)), open(self.savefile + '.pkl', 'wb'))
-
         with open(self.savefile + '.pkl', 'ab') as f:
             pickle.dump(actions_list, f)
 
