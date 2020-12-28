@@ -100,7 +100,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         return q
 
     def step(self, actions_dict):
-        ''' MultiAgentEnv Step'''
+        ''' MultiAgentEnv Step '''
 
         actions_idx = np.array(list(actions_dict.values())).flatten()
 

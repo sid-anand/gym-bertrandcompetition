@@ -4,6 +4,8 @@ from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandC
 from gym_bertrandcompetition.envs.bertrand_competition_continuous import BertrandCompetitionContinuousEnv
 from agents.q_learner import Q_Learner
 
+import os
+import pickle
 import ray
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,7 +27,7 @@ k = 1
 m = 15
 max_steps = 1000
 convergence = 5
-epochs = 5
+epochs = 3
 # choose from QL, DQN, PPO, A3C
 trainer_choice = 'A3C'
 
@@ -40,6 +42,9 @@ config = {
     'num_workers': num_agents,
     'train_batch_size': 200,
     'rollout_fragment_length': 200,
+    'explore': True, # Change this to False to evaluate
+    'monitor': True,
+    'log_level': 'WARN', # INFO for more
     'lr': 0.001
 }
 
@@ -56,8 +61,17 @@ if trainer_choice != 'QL':
 
     s = "Epoch {:3d} / Reward Min: {:6.2f} / Mean: {:6.2f} / Max: {:6.2f} / Steps {:6.2f}"
 
+    savefile = './arrays/' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(epochs * max_steps) + '_steps.pkl'
+
+    if os.path.isfile(savefile):
+        os.remove(savefile)
+        # with open(savefile, 'w') as f:
+        #     f.write('[')
+
     for i in range(epochs):
         result = trainer.train()
+
+        # print(result)
 
         print(s.format(
         i + 1,
@@ -65,6 +79,50 @@ if trainer_choice != 'QL':
         result["episode_reward_mean"],
         result["episode_reward_max"],
         result["episode_len_mean"]))
+
+        # if i % 1 == 0:
+        #     checkpoint = trainer.save()
+        #     print("checkpoint saved at", checkpoint)
+
+    # trainer.compute_action(observation)
+
+    # policy = trainer.get_policy()
+    # model = policy.model
+    # print(model.base_model.summary())
+
+    # with open(self.savefile + '.pkl', 'rb'):
+    #     print(pickle.load(f))
+
+    # print(pickle.load(open(self.savefile + '.pkl', 'rb')))
+
+    # with open(savefile, 'a') as f:
+    #     f.write(']')
+
+    # with open(savefile, 'r') as f:
+    #     array_string = f.read() + ']'
+
+    # print(list(array_string))
+    # print(np.fromstring(array_string))
+
+    # action_history = []
+    # with open(savefile, 'rb') as f:
+    #     try:
+    #         while True:
+    #             action_history.append(pickle.load(f))
+    #     except EOFError:
+    #         pass
+
+    action_history_list = []
+    with open(savefile, 'rb') as f:
+        while True:
+            try:
+                action_history_list.append(pickle.load(f).tolist())
+            except EOFError:
+                break
+
+    action_history_array = np.array(action_history_list).transpose()
+    for i in range(num_agents):
+        env.action_history[env.players[i]] = action_history_array[i].tolist()
 else:
     # Q-learning
 
