@@ -101,15 +101,3 @@ class Q_Learner():
             done = done['__all__']
 
             observation = str(next_observation)
-
-    def plot(self, last_n = 1000, title_str=''):
-        x = np.arange(last_n)
-        for player in self.players:
-            plt.plot(x, self.env.action_price_space.take(self.env.action_history[player][-last_n:]), alpha=0.75, label=player)
-        plt.plot(x, np.repeat(self.env.pM, last_n), 'r--', label='Monopoly')
-        plt.plot(x, np.repeat(self.env.pN, last_n), 'b--', label='Nash')
-        plt.xlabel('Steps')
-        plt.ylabel('Price')
-        plt.legend()
-        plt.savefig('./figures/' + title_str + self.env.trainer_choice + '_with_' + str(self.env.num_agents) + '_agents_k_' + str(self.env.k) + '_for_' + str(self.env.epochs * self.env.max_steps) + '_steps_last_steps_' + str(last_n))
-        plt.clf()

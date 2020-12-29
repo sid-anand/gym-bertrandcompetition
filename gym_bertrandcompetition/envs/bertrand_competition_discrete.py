@@ -9,8 +9,6 @@ from io import StringIO
 import matplotlib.pyplot as plt
 import pickle
 
-# cd OneDrive/Documents/Research/gym-bertrandcompetition/gym_bertrandcompetition/envs
-
 class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 

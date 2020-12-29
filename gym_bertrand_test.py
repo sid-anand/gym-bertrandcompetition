@@ -45,9 +45,9 @@ config = {
     'num_workers': num_agents,
     'train_batch_size': 200,
     'rollout_fragment_length': 200,
-    'explore': True, # Change this to False to evaluate
+    'explore': True, # Change this to False to evaluate (https://docs.ray.io/en/master/rllib-training.html)
     'monitor': True,
-    'log_level': 'WARN', # INFO for more
+    'log_level': 'WARN', # Change this to 'INFO' for more information
     'lr': 0.001
 }
 

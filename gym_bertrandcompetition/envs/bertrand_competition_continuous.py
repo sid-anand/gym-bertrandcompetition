@@ -10,8 +10,6 @@ import matplotlib.pyplot as plt
 import os.path
 import pickle
 
-# cd OneDrive/Documents/Research/gym-bertrandcompetition/gym_bertrandcompetition/envs
-
 class BertrandCompetitionContinuousEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 
