@@ -23,14 +23,14 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
 num_agents = 2
-k = 0
+k = 1
 m = 15
 max_steps = 10000
 convergence = 10
 epochs = 50
 state_space = 'discrete' # 'discrete' or 'continuous'
 # choose from QL, DQN, PPO, A3C
-trainer_choice = 'DQN'
+trainer_choice = 'QL'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
@@ -99,8 +99,8 @@ else:
 
     # Hyperparameters
     alpha = 0.05
-    beta = 0.2
-    delta = 0.99
+    beta = 0.2 # allows for faster convergence, 0.000002 in Calvano et al
+    delta = 0.99 # allows for faster convergence, 0.95 in Calvano et al
 
     q_learner = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, epochs=epochs)
 
