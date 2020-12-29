@@ -198,26 +198,3 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
     def render(self, mode='human'):
         raise NotImplementedError
-
-
-
-# Tests
-
-# bcd = BertrandCompetitionDiscreteEnv()
-# obs = bcd.reset()
-# print(obs)
-# print([0] * 0)
-
-# for i in range(14):
-#     print()
-#     obs, rewards, dones, infos = bcd.step(actions_dict={'agent_0': i, 'agent_1': i})
-#     print('Obs:', obs)
-#     print('Reward:', rewards)
-#     print('Done:', dones)
-#     print('Info:', infos)
-#     print()
-#     obs, rewards, dones, infos = bcd.step(actions_dict={'agent_0': i, 'agent_1': i+1})
-#     print('Obs:', obs)
-#     print('Reward:', rewards)
-#     print('Done:', dones)
-#     print('Info:', infos)

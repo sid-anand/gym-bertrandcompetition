@@ -23,14 +23,14 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
 num_agents = 2
-k = 1
+k = 0
 m = 15
 max_steps = 10000
 convergence = 10
 epochs = 50
 state_space = 'discrete' # 'discrete' or 'continuous'
 # choose from QL, DQN, PPO, A3C
-trainer_choice = 'QL'
+trainer_choice = 'DQN'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
