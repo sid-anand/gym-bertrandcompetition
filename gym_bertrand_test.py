@@ -25,12 +25,12 @@ from ray.tune.logger import pretty_print
 num_agents = 2
 k = 1
 m = 15
-max_steps = 1000
-convergence = 5
-epochs = 3
-state_space = 'continuous' # 'discrete' or 'continuous'
+max_steps = 10000
+convergence = 10
+epochs = 50
+state_space = 'discrete' # 'discrete' or 'continuous'
 # choose from QL, DQN, PPO, A3C
-trainer_choice = 'A3C'
+trainer_choice = 'QL'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
@@ -90,6 +90,10 @@ if trainer_choice != 'QL':
     action_history_array = np.array(action_history_list).transpose()
     for i in range(num_agents):
         env.action_history[env.players[i]] = action_history_array[i].tolist()
+
+    env.plot()
+    env.plot_last(last_n=1000)
+    env.plot_last(last_n=100)
 else:
     # Q-learning
 
@@ -101,15 +105,15 @@ else:
     q_learner = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, epochs=epochs)
 
     q_learner.train()
-    q_learner.plot(last_n=1000)
-    q_learner.plot(last_n=100)
+
+    env.plot()
+    env.plot_last(last_n=1000)
+    env.plot_last(last_n=100)
 
     observation = env.deviate(direction='down')
     q_learner.eval(observation, n=10)
-    q_learner.plot(last_n=20, title_str='down_deviation_')
+    env.plot_last(last_n=20, title_str='_down_deviation')
 
     observation = env.deviate(direction='up')
     q_learner.eval(observation, n=10)
-    q_learner.plot(last_n=20, title_str='up_deviation_')
-
-env.plot()
+    env.plot_last(last_n=20, title_str='_up_deviation')

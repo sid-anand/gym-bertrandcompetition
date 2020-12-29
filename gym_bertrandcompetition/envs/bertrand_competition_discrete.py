@@ -183,6 +183,19 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.savefig('./figures/' + self.savefile)
         plt.clf()
 
+    def plot_last(self, last_n=1000, title_str = ''):
+        x = np.arange(last_n)
+        for player in self.players:
+            plt.plot(x, self.action_price_space.take(self.action_history[player][-last_n:]), alpha=0.75, label=player)
+        plt.plot(x, np.repeat(self.pM, last_n), 'r--', label='Monopoly')
+        plt.plot(x, np.repeat(self.pN, last_n), 'b--', label='Nash')
+        plt.xlabel('Steps')
+        plt.ylabel('Price')
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.epochs * self.max_steps) + ' Steps, Last Steps' + str(last_n))
+        plt.legend()
+        plt.savefig('./figures/' + self.savefile + title_str + '_last_steps_' + str(last_n))
+        plt.clf()
+
     def render(self, mode='human'):
         raise NotImplementedError
 
