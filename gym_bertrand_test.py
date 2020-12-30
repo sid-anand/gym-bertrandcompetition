@@ -29,13 +29,14 @@ max_steps = 10000
 convergence = 10
 epochs = 50
 state_space = 'discrete' # 'discrete' or 'continuous'
+use_pickle = False
 # choose from QL, DQN, PPO, A3C
 trainer_choice = 'QL'
 
 if state_space == 'discrete':
-    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice)
+    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
 elif state_space == 'continuous':
-    env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, epochs=epochs, trainer_choice=trainer_choice)
+    env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, epochs=epochs, trainer_choice=trainer_choice, use_pickle=use_pickle)
 
 config = {
     'env_config': {
@@ -66,7 +67,7 @@ if trainer_choice != 'QL':
 
     savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(epochs * max_steps) + '_steps.pkl'
 
-    if os.path.isfile(savefile):
+    if use_pickle and os.path.isfile(savefile):
         os.remove(savefile)
 
     for i in range(epochs):
@@ -79,21 +80,22 @@ if trainer_choice != 'QL':
         result["episode_reward_max"],
         result["episode_len_mean"]))
 
-    action_history_list = []
-    with open(savefile, 'rb') as f:
-        while True:
-            try:
-                action_history_list.append(pickle.load(f).tolist())
-            except EOFError:
-                break
+    if use_pickle:
+        action_history_list = []
+        with open(savefile, 'rb') as f:
+            while True:
+                try:
+                    action_history_list.append(pickle.load(f).tolist())
+                except EOFError:
+                    break
 
-    action_history_array = np.array(action_history_list).transpose()
-    for i in range(num_agents):
-        env.action_history[env.players[i]] = action_history_array[i].tolist()
+        action_history_array = np.array(action_history_list).transpose()
+        for i in range(num_agents):
+            env.action_history[env.players[i]] = action_history_array[i].tolist()
 
-    env.plot()
-    env.plot_last(last_n=1000)
-    env.plot_last(last_n=100)
+        env.plot()
+        env.plot_last(last_n=1000)
+        env.plot_last(last_n=100)
 else:
     # Q-learning
 

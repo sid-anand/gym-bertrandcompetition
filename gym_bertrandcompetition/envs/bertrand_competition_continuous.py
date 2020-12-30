@@ -13,7 +13,7 @@ import pickle
 class BertrandCompetitionContinuousEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, xi = 0.1, k = 1, max_steps=200, epochs=10, trainer_choice='DQN'):
+    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, xi = 0.1, k = 1, max_steps=200, epochs=10, trainer_choice='DQN', use_pickle=False):
 
         super(BertrandCompetitionContinuousEnv, self).__init__()
         self.num_agents = num_agents
@@ -81,6 +81,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         self.trainer_choice = trainer_choice
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
+        self.use_pickle = use_pickle
         self.savefile = 'continuous_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.epochs * self.max_steps) + '_steps'
 
         for i in range(num_agents):
@@ -101,8 +102,9 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
 
         actions_list = np.array(list(actions_dict.values())).flatten()
 
-        with open('./arrays/' + self.savefile + '.pkl', 'ab') as f:
-            pickle.dump(actions_list, f)
+        if self.use_pickle:
+            with open('./arrays/' + self.savefile + '.pkl', 'ab') as f:
+                pickle.dump(actions_list, f)
 
         for i in range(actions_list.size):
             self.action_history[self.players[i]].append(actions_list[i])
