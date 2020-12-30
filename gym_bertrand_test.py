@@ -10,12 +10,6 @@ import ray
 import numpy as np
 import matplotlib.pyplot as plt
 from ray.tune.registry import register_env
-from ray.rllib.agents.a3c import A3CTrainer
-from ray.rllib.agents.dqn import DQNTrainer
-# from ray.rllib.agents.ddpg import DDPGTrainer
-from ray.rllib.agents.ppo import PPOTrainer
-# from ray.rllib.agents.qmix import QMIXTrainer
-from ray.rllib.agents.pg import PGTrainer
 from ray.tune.logger import pretty_print
 
 # cd OneDrive/Documents/Research/gym-bertrandcompetition
@@ -57,11 +51,20 @@ if trainer_choice != 'QL':
     ray.init(num_cpus=4)
 
     if trainer_choice == 'DQN':
+        from ray.rllib.agents.dqn import DQNTrainer
         trainer = DQNTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'PPO':
+        from ray.rllib.agents.ppo import PPOTrainer
         trainer = PPOTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'A3C':
+        from ray.rllib.agents.a3c import A3CTrainer
         trainer = A3CTrainer(config = config, env = 'Bertrand')
+    elif trainer_choice == 'MADDPG':
+        from ray.rllib.contrib.maddpg import MADDPGTrainer
+        trainer = MADDPGTrainer(config = config, env = 'Bertrand')
+    elif trainer_choice == 'DDPG':
+        from ray.rllib.agents.ddpg import DDPGTrainer
+        trainer = DDPGTrainer(config = config, env = 'Bertrand')
 
     s = "Epoch {:3d} / Reward Min: {:6.2f} / Mean: {:6.2f} / Max: {:6.2f} / Steps {:6.2f}"
 
