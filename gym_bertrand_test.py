@@ -25,18 +25,18 @@ from ray.tune.logger import pretty_print
 num_agents = 2
 k = 1
 m = 15
-max_steps = 10000
-convergence = 10
-epochs = 50
+max_steps = 1000000000
+convergence = 100000
+sessions = 1
 state_space = 'discrete' # 'discrete' or 'continuous'
 use_pickle = False
 # choose from QL, DQN, PPO, A3C
 trainer_choice = 'QL'
 
 if state_space == 'discrete':
-    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, epochs=epochs, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
+    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
 elif state_space == 'continuous':
-    env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, epochs=epochs, trainer_choice=trainer_choice, use_pickle=use_pickle)
+    env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, use_pickle=use_pickle)
 
 config = {
     'env_config': {
@@ -65,12 +65,12 @@ if trainer_choice != 'QL':
 
     s = "Epoch {:3d} / Reward Min: {:6.2f} / Mean: {:6.2f} / Max: {:6.2f} / Steps {:6.2f}"
 
-    savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(epochs * max_steps) + '_steps.pkl'
+    savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl'
 
     if use_pickle and os.path.isfile(savefile):
         os.remove(savefile)
 
-    for i in range(epochs):
+    for i in range(sessions):
         result = trainer.train()
 
         print(s.format(
@@ -96,15 +96,18 @@ if trainer_choice != 'QL':
         env.plot()
         env.plot_last(last_n=1000)
         env.plot_last(last_n=100)
+
+        os.remove(savefile)
 else:
     # Q-learning
 
     # Hyperparameters
     alpha = 0.05
-    beta = 0.2 # allows for faster convergence, 0.000002 in Calvano et al
-    delta = 0.99 # allows for faster convergence, 0.95 in Calvano et al
+    beta = 0.000002
+    delta = 0.95
+    log_frequency = 10000
 
-    q_learner = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, epochs=epochs)
+    q_learner = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
 
     q_learner.train()
 

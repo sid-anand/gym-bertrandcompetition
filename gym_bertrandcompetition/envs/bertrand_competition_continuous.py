@@ -13,7 +13,7 @@ import pickle
 class BertrandCompetitionContinuousEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, xi = 0.1, k = 1, max_steps=200, epochs=10, trainer_choice='DQN', use_pickle=False):
+    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, xi = 0.1, k = 1, max_steps=200, sessions=1, trainer_choice='A3C', use_pickle=False):
 
         super(BertrandCompetitionContinuousEnv, self).__init__()
         self.num_agents = num_agents
@@ -77,12 +77,12 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         self.reward_range = (-float('inf'), float('inf'))
         self.current_step = None
         self.max_steps = max_steps
-        self.epochs = epochs
+        self.sessions = sessions
         self.trainer_choice = trainer_choice
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
         self.use_pickle = use_pickle
-        self.savefile = 'continuous_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.epochs * self.max_steps) + '_steps'
+        self.savefile = 'continuous_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.sessions) + '_steps'
 
         for i in range(num_agents):
             if self.players[i] not in self.action_history:
@@ -175,7 +175,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
-        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.epochs * self.max_steps) + ' Steps')
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.sessions) + ' Sessions')
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile)
         plt.clf()
@@ -189,7 +189,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, last_n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
-        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.epochs * self.max_steps) + ' Steps, Last Steps' + str(last_n))
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.sessions) + ' Sessions, Last Steps' + str(last_n))
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile + title_str + '_last_steps_' + str(last_n))
         plt.clf()

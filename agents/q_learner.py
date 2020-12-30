@@ -6,7 +6,7 @@ from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandC
 
 class Q_Learner():
 
-    def __init__(self, env, num_agents=2, m=15, alpha=0.05, beta=0.2, delta=0.99, epochs=50):
+    def __init__(self, env, num_agents=2, m=15, alpha=0.05, beta=0.2, delta=0.99, sessions=1, log_frequency=10000):
 
         self.env = env
         self.num_agents = num_agents
@@ -14,7 +14,8 @@ class Q_Learner():
         self.alpha = alpha
         self.beta = beta
         self.delta = delta
-        self.epochs = epochs
+        self.sessions = sessions
+        self.log_frequency = log_frequency
 
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
 
@@ -24,21 +25,20 @@ class Q_Learner():
         self.q_table = [{}] * self.num_agents
 
         # For plotting metrics
-        # all_epochs = [] #store the number of epochs per episode
         all_rewards = [ [] for _ in range(self.num_agents) ] # store the penalties per episode
 
-        for i in range(self.epochs):    
+        for i in range(self.sessions):    
 
             observation = self.env.reset()
 
-            # epochs, total_reward = 0, 0
             loop_count = 0
             reward_list = []
             done = False
             
             while not done:
 
-                epsilon = np.exp(-1 * self.beta * i)
+                # epsilon = np.exp(-1 * self.beta * i)
+                epsilon = np.exp(-1 * self.beta * loop_count)
 
                 observation = str(observation)
 
@@ -73,13 +73,15 @@ class Q_Learner():
                 observation = next_observation
 
                 loop_count += 1
+
+                if loop_count % self.log_frequency == 0:
+                    mean_reward = np.mean(reward_list[-self.log_frequency:])
+                    print(f"Session: {i}, \tLoop Count: {loop_count}, \t Epsilon: {epsilon}, \tMean Reward: {mean_reward}")
                 
             mean_reward = np.mean(reward_list)
 
-            if i % 1 == 0:
-                print(f"Epochs: {i}, \tLoop Count: {loop_count}, \t Epsilon: {epsilon}, \tMean Reward: {mean_reward}")
+            print(f"Session: {i}, \tLoop Count: {loop_count}, \t Epsilon: {epsilon}, \tMean Reward: {mean_reward}")
             
-            # all_epochs.append(epochs)
             for agent in range(self.num_agents):
                 all_rewards[agent].append(mean_reward)
 
