@@ -6,5 +6,5 @@
 #SBATCH --mem=100           # Memory pool for all cores (see also --mem-per-cpu)
 #SBATCH -o myoutput_%j.out  # File to which STDOUT will be written, %j inserts jobid
 #SBATCH -e myerrors_%j.err  # File to which STDERR will be written, %j inserts jobid
-module load Anaconda3/2019.10 #Load Anaconda module
-python gym_bertrand_test.py
+module load perl/5.26.1-fasrc01 #Load Perl module
+perl -e 'print "Hi there.\n"'
