@@ -14,6 +14,10 @@ from ray.tune.logger import pretty_print
 
 # cd OneDrive/Documents/Research/gym-bertrandcompetition
 
+# print('gym', gym.__version__)
+# print('ray', ray.__version__)
+# print('np', np.__version__)
+
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
 num_agents = 2
@@ -38,13 +42,13 @@ config = {
     },
     'env': 'Bertrand',
     'num_workers': num_agents,
-    'train_batch_size': 200,
-    'rollout_fragment_length': 200,
+    'train_batch_size': 200, # Does this limit training?
+    'rollout_fragment_length': 200, # Does this limit training?
     'explore': True, # Change this to False to evaluate (https://docs.ray.io/en/master/rllib-training.html)
     'monitor': True,
     'log_level': 'WARN', # Change this to 'INFO' for more information
     'lr': 0.001
-}
+} # Perhaps specify to use GPU in config? (https://docs.ray.io/en/latest/using-ray-with-gpus.html)
 
 if trainer_choice != 'QL':
     register_env('Bertrand', lambda env_config: env)
