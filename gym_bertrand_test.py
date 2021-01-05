@@ -7,6 +7,7 @@ from agents.q_learner import Q_Learner
 import os
 import pickle
 import ray
+import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 from ray.tune.registry import register_env
@@ -17,6 +18,7 @@ from ray.tune.logger import pretty_print
 # print('gym', gym.__version__)
 # print('ray', ray.__version__)
 # print('np', np.__version__)
+print('tf', tf.__version__)
 
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
@@ -29,7 +31,7 @@ sessions = 1
 state_space = 'discrete' # 'discrete' or 'continuous'
 use_pickle = False
 # choose from QL, DQN, PPO, A3C
-trainer_choice = 'QL'
+trainer_choice = 'DQN'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
