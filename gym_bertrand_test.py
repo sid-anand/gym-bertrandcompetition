@@ -31,7 +31,7 @@ sessions = 1
 state_space = 'discrete' # 'discrete' or 'continuous'
 use_pickle = False
 # choose from QL, DQN, PPO, A3C
-trainer_choice = 'QL'
+trainer_choice = 'DQN'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
