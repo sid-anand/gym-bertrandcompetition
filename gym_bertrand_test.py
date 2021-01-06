@@ -26,7 +26,7 @@ num_agents = 2
 k = 1
 m = 15
 max_steps = 1000000000
-convergence = 100000
+convergence = 5
 sessions = 1
 state_space = 'discrete' # 'discrete' or 'continuous'
 use_pickle = False
@@ -111,8 +111,8 @@ else:
     # Q-learning
 
     # Hyperparameters
-    alpha = 0.05
-    beta = 0.000002
+    alpha = 0.15
+    beta = 0.00001
     delta = 0.95
     log_frequency = 10000
 
