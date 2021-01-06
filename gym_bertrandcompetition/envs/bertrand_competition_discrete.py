@@ -8,6 +8,9 @@ import numpy as np
 from io import StringIO
 import matplotlib.pyplot as plt
 import pickle
+import pandas as pd
+
+# warnings.filterwarnings('ignore')
 
 class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
@@ -95,8 +98,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
     def demand(self, a, p, mu, agent_idx):
         ''' Demand as a function of product quality indexes, price, and mu. '''
-        q = np.exp((a[agent_idx] - p[agent_idx]) / mu) / (np.sum(np.exp((a - p) / mu)) + np.exp(self.a_0 / mu))
-        return q
+        return np.exp((a[agent_idx] - p[agent_idx]) / mu) / (np.sum(np.exp((a - p) / mu)) + np.exp(self.a_0 / mu))
 
     def step(self, actions_dict):
         ''' MultiAgentEnv Step '''
@@ -110,8 +112,6 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         for i in range(actions_idx.size):
             self.action_history[self.players[i]].append(actions_idx[i])
 
-        reward = np.array([0.0] * self.num_agents)
-
         if self.k > 0:
             obs_players = np.array([self.action_history[self.players[i]][-self.k:] for i in range(self.num_agents)]).flatten()
             observation = dict(zip(self.players, [obs_players for i in range(self.num_agents)]))
@@ -119,6 +119,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             observation = dict(zip(self.players, [self.numeric_low for _ in range(self.num_agents)]))
 
         self.prices = self.action_price_space.take(actions_idx)
+        reward = np.array([0.0] * self.num_agents)
 
         for i in range(self.num_agents):
             reward[i] = (self.prices[i] - self.c_i) * self.demand(self.a, self.prices, self.mu, i)
@@ -129,7 +130,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             self.convergence_counter += 1
         else:
             self.convergence_counter = 0
-            
+
         if self.convergence_counter == self.convergence or self.current_step == self.max_steps:
             done = {'__all__': True}
         else:
@@ -177,12 +178,14 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             
         return observation
 
-    def plot(self):
+    def plot(self, window=1000):
         '''Plot action history.'''
         n = len(self.action_history[self.players[0]])
         x = np.arange(n)
         for player in self.players:
             plt.plot(x, self.action_price_space.take(self.action_history[player]), alpha=0.75, label=player)
+        for player in self.players:
+            plt.plot(x, pd.Series(self.action_price_space.take(self.action_history[player])).rolling(window=window).mean(), alpha=0.75, label=player + ' MA')
         plt.plot(x, np.repeat(self.pM, n), 'r--', label='Monopoly')
         plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
         plt.xlabel('Steps')

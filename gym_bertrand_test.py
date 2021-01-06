@@ -22,7 +22,7 @@ from ray.tune.logger import pretty_print
 
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
-num_agents = 2
+num_agents = 3
 k = 1
 m = 15
 max_steps = 1000000000
