@@ -111,10 +111,10 @@ else:
     # Q-learning
 
     # Hyperparameters
-    alpha = 0.15
-    beta = 0.00001
+    alpha = 0.15 # Change these to test Calvano results
+    beta = 0.00001 # Change these to test Calvano results
     delta = 0.95
-    log_frequency = 10000
+    log_frequency = 50000
 
     q_learner = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
 
@@ -125,9 +125,9 @@ else:
     env.plot_last(last_n=100)
 
     observation = env.deviate(direction='down')
-    q_learner.eval(observation, n=10)
-    env.plot_last(last_n=20, title_str='_down_deviation')
+    q_learner.eval(observation, n=20)
+    env.plot_last(last_n=25, title_str='_down_deviation')
 
     observation = env.deviate(direction='up')
-    q_learner.eval(observation, n=10)
-    env.plot_last(last_n=20, title_str='_up_deviation')
+    q_learner.eval(observation, n=20)
+    env.plot_last(last_n=25, title_str='_up_deviation')

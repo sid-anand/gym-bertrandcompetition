@@ -80,6 +80,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.max_steps = max_steps
         self.sessions = sessions
         self.convergence = convergence
+        self.convergence_counter = 0
         self.trainer_choice = trainer_choice
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
@@ -88,9 +89,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         for i in range(num_agents):
             if self.players[i] not in self.action_history:
-                self.action_history[self.players[i]] = []
-                for _ in range(convergence):
-                    self.action_history[self.players[i]].append(self.action_space.sample())
+                self.action_history[self.players[i]] = [self.action_space.sample()]
 
         self.reset()
 
@@ -125,8 +124,18 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             reward[i] = (self.prices[i] - self.c_i) * self.demand(self.a, self.prices, self.mu, i)
 
         reward = dict(zip(self.players, reward))
-        done = {'__all__': np.all(np.array(self.action_history[self.players[0]][-self.convergence:]) == self.action_history[self.players[0]][-1])
-                                   or self.current_step == self.max_steps}
+
+        if self.action_history[self.players[0]][-2] == self.action_history[self.players[0]][-1]:
+            self.convergence_counter += 1
+        else:
+            self.convergence_counter = 0
+            
+        if self.convergence_counter == self.convergence or self.current_step == self.max_steps:
+            done = {'__all__': True}
+        else:
+            done = {'__all__': False}
+        # done = {'__all__': np.all(np.array(self.action_history[self.players[0]][-self.convergence:]) == self.action_history[self.players[0]][-1])
+        #                            or self.current_step == self.max_steps}
         info = dict(zip(self.players, [{}]*self.num_agents))
 
         self.current_step += 1
@@ -191,7 +200,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, last_n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
-        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.sessions) + ' Sessions, Last Steps' + str(last_n))
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.sessions) + ' Sessions, Last Steps ' + str(last_n))
         plt.legend()
         plt.savefig('./figures/' + self.savefile + title_str + '_last_steps_' + str(last_n))
         plt.clf()
