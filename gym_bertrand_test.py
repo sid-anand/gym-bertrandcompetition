@@ -14,13 +14,6 @@ import matplotlib.pyplot as plt
 from ray.tune.registry import register_env
 from ray.tune.logger import pretty_print
 
-# cd OneDrive/Documents/Research/gym-bertrandcompetition
-
-# print('gym', gym.__version__)
-# print('ray', ray.__version__)
-# print('np', np.__version__)
-# print('tf', tf.__version__)
-
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
 num_agents = 2
@@ -30,9 +23,11 @@ max_steps = 100000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
 state_space = 'continuous' # 'discrete' or 'continuous'
+
 use_pickle = True
 num_gpus = 0
 overwrite_id = 0
+len_eval_after_deviation = 20
 # choose from QL, DQN, PPO, A3C, DDPG, MADDPG
 trainer_choice = 'DDPG'
 
@@ -57,6 +52,30 @@ config = {
 } # Perhaps specify to use GPU in config? (https://docs.ray.io/en/latest/using-ray-with-gpus.html)
 
 savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl'
+
+def eval_then_unload(observation):
+    for i in range(len_eval_after_deviation):
+        # action = trainer.compute_action(observation)
+        action = {}
+        for agent_id, agent_obs in observation.items():
+            # policy_id = self.config['multiagent']['policy_mapping_fn'](agent_id)
+            # action[agent_id] = self.agent.compute_action(agent_obs, policy_id=policy_id) # Does this imply I'm using the same policy for both agents?
+            action[agent_id] = trainer.compute_action(agent_obs)
+        observation, _, _, _ = env.step(action)
+
+    action_history_list = []
+    with open(savefile, 'rb') as f:
+        while True:
+            try:
+                action_history_list.append(pickle.load(f).tolist())
+            except EOFError:
+                break
+
+    action_history_array = np.array(action_history_list).transpose()
+    for i in range(num_agents):
+        env.action_history[env.players[i]] = action_history_array[i].tolist()
+
+
 
 if trainer_choice != 'QL':
     register_env('Bertrand', lambda env_config: env)
@@ -126,13 +145,15 @@ if trainer_choice != 'QL':
         env.plot_last(last_n=1000, overwrite_id=overwrite_id)
         env.plot_last(last_n=100, overwrite_id=overwrite_id)
 
-        # observation = env.deviate(direction='down')
-        # q_learner.eval(observation, n=20)
-        # env.plot_last(last_n=25, title_str='_down_deviation', overwrite_id=overwrite_id)
+        # Deviate downwards
+        observation = env.deviate(direction='down')
+        eval_then_unload(observation)
+        env.plot_last(last_n=21, title_str='_down_deviation', overwrite_id=overwrite_id)
 
-        # observation = env.deviate(direction='up')
-        # q_learner.eval(observation, n=20)
-        # env.plot_last(last_n=25, title_str='_up_deviation', overwrite_id=overwrite_id)
+        # Deviate upwards
+        observation = env.deviate(direction='up')
+        eval_then_unload(observation)
+        env.plot_last(last_n=21, title_str='_up_deviation', overwrite_id=overwrite_id)
 
         os.remove(savefile)
 else:
@@ -156,9 +177,9 @@ else:
     env.plot_last(last_n=100, overwrite_id=overwrite_id)
 
     observation = env.deviate(direction='down')
-    q_learner.eval(observation, n=20)
+    q_learner.eval(observation, n=len_eval_after_deviation)
     env.plot_last(last_n=25, title_str='_down_deviation', overwrite_id=overwrite_id)
 
     observation = env.deviate(direction='up')
-    q_learner.eval(observation, n=20)
+    q_learner.eval(observation, n=len_eval_after_deviation)
     env.plot_last(last_n=25, title_str='_up_deviation', overwrite_id=overwrite_id)
