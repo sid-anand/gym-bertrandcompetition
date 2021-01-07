@@ -1,0 +1,15 @@
+{
+  "batch_mode": "complete_episodes",
+  "env": "Bertrand",
+  "env_config": {
+    "num_agents": 2
+  },
+  "explore": true,
+  "gamma": 0.95,
+  "log_level": "WARN",
+  "lr": 0.001,
+  "monitor": true,
+  "num_workers": 2,
+  "rollout_fragment_length": 100,
+  "train_batch_size": 1000
+}

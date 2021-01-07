@@ -9,6 +9,7 @@ from io import StringIO
 import matplotlib.pyplot as plt
 import pickle
 import pandas as pd
+import warnings
 
 # warnings.filterwarnings('ignore')
 
@@ -180,6 +181,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
     def plot(self, window=1000):
         '''Plot action history.'''
+        warnings.filterwarnings('ignore')
         n = len(self.action_history[self.players[0]])
         x = np.arange(n)
         for player in self.players:

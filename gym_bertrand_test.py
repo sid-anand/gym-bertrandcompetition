@@ -7,6 +7,7 @@ from agents.q_learner import Q_Learner
 import os
 import pickle
 import ray
+from ray import tune
 # import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,13 +26,14 @@ from ray.tune.logger import pretty_print
 num_agents = 2
 k = 1
 m = 15
-max_steps = 1000000000
+max_steps = 100000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
 state_space = 'discrete' # 'discrete' or 'continuous'
-use_pickle = False
+use_pickle = True
+num_gpus = 1
 # choose from QL, DQN, PPO, A3C
-trainer_choice = 'QL'
+trainer_choice = 'DQN'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
@@ -43,12 +45,15 @@ config = {
         'num_agents': num_agents,
     },
     'env': 'Bertrand',
-    'num_workers': num_agents,
-    'train_batch_size': 200, # Does this limit training?
-    'rollout_fragment_length': 200, # Does this limit training?
+    # 'num_workers': num_agents,
+    'num_gpus': num_gpus,
+    'train_batch_size': 1000, # Does this limit training?
+    'rollout_fragment_length': 100, # Does this limit training?
+    'batch_mode': 'complete_episodes',
     'explore': True, # Change this to False to evaluate (https://docs.ray.io/en/master/rllib-training.html)
-    'monitor': True,
+    # 'monitor': True,
     'log_level': 'WARN', # Change this to 'INFO' for more information
+    'gamma': 0.95,
     'lr': 0.001
 } # Perhaps specify to use GPU in config? (https://docs.ray.io/en/latest/using-ray-with-gpus.html)
 
@@ -58,9 +63,11 @@ if trainer_choice != 'QL':
 
     if trainer_choice == 'DQN':
         from ray.rllib.agents.dqn import DQNTrainer
+        config['num_workers'] = 0
         trainer = DQNTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'PPO':
         from ray.rllib.agents.ppo import PPOTrainer
+        config['num_workers'] = num_agents
         trainer = PPOTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'A3C':
         from ray.rllib.agents.a3c import A3CTrainer
@@ -79,6 +86,9 @@ if trainer_choice != 'QL':
     if use_pickle and os.path.isfile(savefile):
         os.remove(savefile)
 
+    # analysis = tune.run(trainer_choice, config=config, local_dir='./log', checkpoint_at_end=True)
+    # checkpoints = analysis.get_trial_checkpoints_paths(trial=analysis.get_best_trial("episode_reward_mean"), metric="episode_reward_mean")
+
     for i in range(sessions):
         result = trainer.train()
 
@@ -88,6 +98,9 @@ if trainer_choice != 'QL':
         result["episode_reward_mean"],
         result["episode_reward_max"],
         result["episode_len_mean"]))
+
+        # checkpoint = trainer.save()
+        # print('Checkpoint: ', checkpoint)
 
     if use_pickle:
         action_history_list = []

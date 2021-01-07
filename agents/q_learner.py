@@ -81,6 +81,9 @@ class Q_Learner():
             mean_reward = np.mean(reward_list)
 
             print(f"Session: {i}, \tLoop Count: {loop_count}, \t Epsilon: {epsilon}, \tMean Reward: {mean_reward}")
+
+            # with open('./arrays/' + self.savefile + '.pkl', 'ab') as f:
+            #     pickle.dump(actions_idx, f)
             
             for agent in range(self.num_agents):
                 all_rewards[agent].append(mean_reward)
