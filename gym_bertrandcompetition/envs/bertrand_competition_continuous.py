@@ -7,8 +7,9 @@ from contextlib import closing
 import numpy as np
 from io import StringIO
 import matplotlib.pyplot as plt
-import os.path
 import pickle
+import pandas as pd
+import warnings
 
 class BertrandCompetitionContinuousEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
@@ -82,7 +83,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
         self.use_pickle = use_pickle
-        self.savefile = 'continuous_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.sessions) + '_steps'
+        self.savefile = 'continuous_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.sessions) + '_sessions'
 
         for i in range(num_agents):
             if self.players[i] not in self.action_history:
@@ -163,8 +164,9 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
             
         return observation
 
-    def plot(self, window=1000):
+    def plot(self, window=1000, overwrite_id=0):
         '''Plot action history.'''
+        warnings.filterwarnings('ignore')
         n = len(self.action_history[self.players[0]])
         x = np.arange(n)
         for player in self.players:
@@ -177,10 +179,10 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.ylabel('Price')
         plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.sessions) + ' Sessions')
         plt.legend(loc='upper left')
-        plt.savefig('./figures/' + self.savefile)
+        plt.savefig('./figures/' + self.savefile + '_' + str(overwrite_id))
         plt.clf()
 
-    def plot_last(self, last_n=1000, title_str = ''):
+    def plot_last(self, last_n=1000, title_str = '', overwrite_id=0):
         '''Plot action history.'''
         x = np.arange(last_n)
         for player in self.players:
@@ -191,7 +193,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.ylabel('Price')
         plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.sessions) + ' Sessions, Last Steps' + str(last_n))
         plt.legend(loc='upper left')
-        plt.savefig('./figures/' + self.savefile + title_str + '_last_steps_' + str(last_n))
+        plt.savefig('./figures/' + self.savefile + title_str + '_last_steps_' + str(last_n) + '_' + str(overwrite_id))
         plt.clf()
 
     def render(self, mode='human'):

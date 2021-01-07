@@ -179,7 +179,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             
         return observation
 
-    def plot(self, window=1000):
+    def plot(self, window=1000, overwrite_id=0):
         '''Plot action history.'''
         warnings.filterwarnings('ignore')
         n = len(self.action_history[self.players[0]])
@@ -194,10 +194,10 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.ylabel('Price')
         plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.sessions) + ' Sessions')
         plt.legend(loc='upper left')
-        plt.savefig('./figures/' + self.savefile)
+        plt.savefig('./figures/' + self.savefile + '_' + str(overwrite_id))
         plt.clf()
 
-    def plot_last(self, last_n=1000, title_str = ''):
+    def plot_last(self, last_n=1000, title_str = '', overwrite_id=0):
         x = np.arange(last_n)
         for player in self.players:
             plt.plot(x, self.action_price_space.take(self.action_history[player][-last_n:]), alpha=0.75, label=player)
@@ -207,7 +207,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.ylabel('Price')
         plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.sessions) + ' Sessions, Last Steps ' + str(last_n))
         plt.legend()
-        plt.savefig('./figures/' + self.savefile + title_str + '_last_steps_' + str(last_n))
+        plt.savefig('./figures/' + self.savefile + title_str + '_last_steps_' + str(last_n) + '_' + str(overwrite_id))
         plt.clf()
 
     def render(self, mode='human'):
