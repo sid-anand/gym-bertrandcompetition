@@ -19,17 +19,17 @@ from ray.tune.logger import pretty_print
 num_agents = 2
 k = 1
 m = 15
-max_steps = 100000 # 1000000000 from Calvano paper
+max_steps = 2000000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
-state_space = 'continuous' # 'discrete' or 'continuous'
+state_space = 'discrete' # 'discrete' or 'continuous'
 
-use_pickle = True
+use_pickle = False
 num_gpus = 0
 overwrite_id = 0
 len_eval_after_deviation = 20
 # choose from QL, DQN, PPO, A3C, DDPG, MADDPG
-trainer_choice = 'DDPG'
+trainer_choice = 'QL'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
@@ -170,8 +170,8 @@ else:
 
     q_learner.train()
 
-    with open('./q_tables/' + savefile + '.pkl', 'wb') as f:
-        pickle.dump(self.q_table, f)
+    with open('./q_tables/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl', 'wb') as f:
+        pickle.dump(q_learner.q_table, f)
 
     env.plot(overwrite_id=overwrite_id)
     env.plot_last(last_n=1000, overwrite_id=overwrite_id)
