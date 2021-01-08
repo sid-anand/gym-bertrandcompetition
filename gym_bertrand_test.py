@@ -22,14 +22,14 @@ m = 15
 max_steps = 100000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
-state_space = 'continuous' # 'discrete' or 'continuous'
+state_space = 'discrete' # 'discrete' or 'continuous'
 
 use_pickle = True
 num_gpus = 0
-overwrite_id = 0
+overwrite_id = 2
 len_eval_after_deviation = 20
 # choose from QL, DQN, PPO, A3C, DDPG, MADDPG
-trainer_choice = 'DDPG'
+trainer_choice = 'DQN'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
@@ -73,7 +73,8 @@ def eval_then_unload(observation):
 
     action_history_array = np.array(action_history_list).transpose()
     for i in range(num_agents):
-        env.action_history[env.players[i]] = action_history_array[i].tolist()
+        env.action_history[env.players[i]].extend(action_history_array[i].tolist())
+
 
 
 
@@ -148,12 +149,12 @@ if trainer_choice != 'QL':
         # Deviate downwards
         observation = env.deviate(direction='down')
         eval_then_unload(observation)
-        env.plot_last(last_n=21, title_str='_down_deviation', overwrite_id=overwrite_id)
+        env.plot_last(last_n=30, title_str='_down_deviation', overwrite_id=overwrite_id)
 
         # Deviate upwards
         observation = env.deviate(direction='up')
         eval_then_unload(observation)
-        env.plot_last(last_n=21, title_str='_up_deviation', overwrite_id=overwrite_id)
+        env.plot_last(last_n=30, title_str='_up_deviation', overwrite_id=overwrite_id)
 
         os.remove(savefile)
 else:
