@@ -22,14 +22,14 @@ m = 15
 max_steps = 100000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
-state_space = 'discrete' # 'discrete' or 'continuous'
+state_space = 'continuous' # 'discrete' or 'continuous'
 
 use_pickle = True
 num_gpus = 0
-overwrite_id = 2
+overwrite_id = 0
 len_eval_after_deviation = 20
 # choose from QL, DQN, PPO, A3C, DDPG, MADDPG
-trainer_choice = 'DQN'
+trainer_choice = 'DDPG'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
