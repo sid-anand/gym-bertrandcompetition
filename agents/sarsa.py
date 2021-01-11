@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandCompetitionDiscreteEnv
 
-class Q_Learner():
+class SARSA():
 
     def __init__(self, env, num_agents=2, m=15, alpha=0.05, beta=0.2, delta=0.99, sessions=1, log_frequency=10000):
 
@@ -19,6 +19,18 @@ class Q_Learner():
 
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
 
+    def choose_action(self, observation, epsilon):
+        actions_dict = {}
+        for agent in range(self.num_agents):
+            if observation not in self.q_table[agent]:
+                self.q_table[agent][observation] = [0] * self.m
+
+            if random.uniform(0, 1) < epsilon:
+                actions_dict[self.players[agent]] = self.env.action_space.sample()
+            else:
+                actions_dict[self.players[agent]] = np.argmax(self.q_table[agent][observation])
+        return actions_dict
+
     def train(self):
         '''Train to fill q_table'''
 
@@ -31,6 +43,7 @@ class Q_Learner():
 
             observation = self.env.reset()
             observation = str(observation)
+            actions_dict = self.choose_action(observation, 1.0)
 
             loop_count = 0
             reward_list = []
@@ -41,35 +54,28 @@ class Q_Learner():
                 # epsilon = np.exp(-1 * self.beta * i)
                 epsilon = np.exp(-1 * self.beta * loop_count)
 
-                actions_dict = {}
-                for agent in range(self.num_agents):
-                    if observation not in self.q_table[agent]:
-                        self.q_table[agent][observation] = [0] * self.m
-
-                    if random.uniform(0, 1) < epsilon:
-                        actions_dict[self.players[agent]] = self.env.action_space.sample()
-                    else:
-                        actions_dict[self.players[agent]] = np.argmax(self.q_table[agent][observation])
-
                 next_observation, reward, done, info = self.env.step(actions_dict)
                 done = done['__all__']
 
                 next_observation = str(next_observation)
 
+                actions_dict2 = self.choose_action(next_observation, epsilon)
+
                 last_values = [0] * self.num_agents
-                Q_maxes = [0] * self.num_agents
+                next_Qs = [0] * self.num_agents
                 for agent in range(self.num_agents):
                     if next_observation not in self.q_table[agent]:
                         self.q_table[agent][next_observation] = [0] * self.m
                 
                     last_values[agent] = self.q_table[agent][observation][actions_dict[self.players[agent]]]
-                    Q_maxes[agent] = np.max(self.q_table[agent][next_observation])
+                    next_Qs[agent] = self.q_table[agent][next_observation][actions_dict2[self.players[agent]]]
                 
-                    self.q_table[agent][observation][actions_dict[self.players[agent]]] = ((1 - self.alpha) * last_values[agent]) + (self.alpha * (reward[self.players[agent]] + self.delta * Q_maxes[agent]))
+                    self.q_table[agent][observation][actions_dict[self.players[agent]]] = ((1 - self.alpha) * last_values[agent]) + (self.alpha * (reward[self.players[agent]] + self.delta * next_Qs[agent]))
 
                 reward_list.append(reward[self.players[0]])
 
                 observation = next_observation
+                actions_dict = actions_dict2
 
                 loop_count += 1
 

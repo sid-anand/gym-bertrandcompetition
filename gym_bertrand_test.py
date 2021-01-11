@@ -3,6 +3,7 @@ import gym_bertrandcompetition
 from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandCompetitionDiscreteEnv
 from gym_bertrandcompetition.envs.bertrand_competition_continuous import BertrandCompetitionContinuousEnv
 from agents.q_learner import Q_Learner
+from agents.sarsa import SARSA
 
 import os
 import pickle
@@ -19,17 +20,17 @@ from ray.tune.logger import pretty_print
 num_agents = 2
 k = 1
 m = 15
-max_steps = 100000 # 1000000000 from Calvano paper
+max_steps = 2000000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
 state_space = 'discrete' # 'discrete' or 'continuous'
 
-use_pickle = True
+use_pickle = False
 num_gpus = 0
 overwrite_id = 0
 len_eval_after_deviation = 20
-# choose from QL, DQN, PPO, A3C, A2C, DDPG
-trainer_choice = 'DQN'
+# choose from QL, SARSA, DQN, PPO, A3C, A2C, DDPG
+trainer_choice = 'QL'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
@@ -78,7 +79,7 @@ def eval_then_unload(observation):
 
 
 
-if trainer_choice != 'QL':
+if trainer_choice not in ['QL', 'SARSA']:
     register_env('Bertrand', lambda env_config: env)
     ray.init(num_cpus=4)
 
@@ -160,7 +161,8 @@ if trainer_choice != 'QL':
         env.plot_last(last_n=30, title_str='_up_deviation', overwrite_id=overwrite_id)
 
         os.remove(savefile)
-else:
+
+elif trainer_choice == 'QL':
     # Q-learning
 
     # Hyperparameters
@@ -186,4 +188,33 @@ else:
 
     observation = env.deviate(direction='up')
     q_learner.eval(observation, n=len_eval_after_deviation)
+    env.plot_last(last_n=25, title_str='_up_deviation', overwrite_id=overwrite_id)
+
+elif trainer_choice == 'SARSA':
+    # SARSA
+    # NOTE: This is the same as Q-learning since our 'policy' is to take the maximum value action
+
+    # Hyperparameters
+    alpha = 0.15 # Change these to test Calvano results
+    beta = 0.00001 # Change these to test Calvano results
+    delta = 0.95
+    log_frequency = 50000
+
+    sarsa = SARSA(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
+
+    sarsa.train()
+
+    with open('./q_tables/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl', 'wb') as f:
+        pickle.dump(sarsa.q_table, f)
+
+    env.plot(overwrite_id=overwrite_id)
+    env.plot_last(last_n=1000, overwrite_id=overwrite_id)
+    env.plot_last(last_n=100, overwrite_id=overwrite_id)
+
+    observation = env.deviate(direction='down')
+    sarsa.eval(observation, n=len_eval_after_deviation)
+    env.plot_last(last_n=25, title_str='_down_deviation', overwrite_id=overwrite_id)
+
+    observation = env.deviate(direction='up')
+    sarsa.eval(observation, n=len_eval_after_deviation)
     env.plot_last(last_n=25, title_str='_up_deviation', overwrite_id=overwrite_id)
