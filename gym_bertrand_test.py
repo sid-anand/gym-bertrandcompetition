@@ -19,17 +19,17 @@ from ray.tune.logger import pretty_print
 num_agents = 2
 k = 1
 m = 15
-max_steps = 2000000 # 1000000000 from Calvano paper
+max_steps = 100000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
 state_space = 'discrete' # 'discrete' or 'continuous'
 
-use_pickle = False
+use_pickle = True
 num_gpus = 0
 overwrite_id = 0
 len_eval_after_deviation = 20
-# choose from QL, DQN, PPO, A3C, DDPG, MADDPG
-trainer_choice = 'QL'
+# choose from QL, DQN, PPO, A3C, A2C, DDPG
+trainer_choice = 'DQN'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
@@ -100,6 +100,9 @@ if trainer_choice != 'QL':
     elif trainer_choice == 'A3C':
         from ray.rllib.agents.a3c import A3CTrainer
         trainer = A3CTrainer(config = config, env = 'Bertrand')
+    elif trainer_choice == 'A2C':
+        from ray.rllib.agents.a3c import A2CTrainer
+        trainer = A2CTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'MADDPG':
         from ray.rllib.contrib.maddpg import MADDPGTrainer
         config['agent_id'] = 0
