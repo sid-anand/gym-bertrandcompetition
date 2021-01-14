@@ -9,6 +9,7 @@ from io import StringIO
 import matplotlib.pyplot as plt
 import pickle
 import pandas as pd
+from scipy import optimize
 import warnings
 
 # warnings.filterwarnings('ignore')
@@ -31,7 +32,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.m = m
 
         # Product Quality Indexes
-        self.a = np.array([c_i + a_minus_c_i] * num_agents)
+        a = np.array([c_i + a_minus_c_i] * num_agents)
+        self.a = a
 
         # Product Quality Index: Outside Good
         self.a_0 = a_0
@@ -40,30 +42,65 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.mu = mu
 
         # Nash Equilibrium Price
-        # Make sure this tries all possibilities
-        price_range = np.arange(0, 2.5, 0.01)
-        nash_temp = 0
-        for i in price_range:
-            p = [i] * num_agents
-            first_player_profit = (i - c_i) * self.demand(self.a, p, self.mu, 0)
-            new_profit = []
-            for j in price_range:
-                p[0] = j
-                new_profit.append((j - c_i) * self.demand(self.a, p, self.mu, 0))
-            if first_player_profit >= np.max(new_profit):
-                nash_temp = i
-        # Nash Price vs. Marginal Cost
-        self.pN = nash_temp
-        # self.pN = c_i
+        def nash_func(p):
+            ''' Derviative for demand function '''
+            denominator = np.exp(a_0 / mu)
+            for i in range(num_agents):
+                denominator += np.exp((a[i] - p[i]) / mu)
+            function_list = []
+            for i in range(num_agents):
+                term = np.exp((a[i] - p[i]) / mu)
+                first_term = term / denominator
+                second_term = (np.exp((2 * (a[i] - p[i])) / mu) * (-c_i + p[i])) / ((denominator ** 2) * mu)
+                third_term = (term * (-c_i + p[i])) / (denominator * mu)
+                function_list.append((p[i] - c_i) * (first_term + second_term - third_term))
+            return function_list
+
+        # Finding root of derivative for demand function
+        nash_sol = optimize.root(nash_func, [2] * num_agents)
+        self.pN = nash_sol.x[0]
         print('Nash Price:', self.pN)
 
+        # # Finding Nash Price by iteration
+        # # Make sure this tries all possibilities
+        # price_range = np.arange(0, 2.5, 0.01)
+        # nash_temp = 0
+        # for i in price_range:
+        #     p = [i] * num_agents
+        #     first_player_profit = (i - c_i) * self.demand(self.a, p, self.mu, 0)
+        #     new_profit = []
+        #     for j in price_range:
+        #         p[0] = j
+        #         new_profit.append((j - c_i) * self.demand(self.a, p, self.mu, 0))
+        #     if first_player_profit >= np.max(new_profit):
+        #         nash_temp = i
+        # self.pN = nash_temp
+        # print('Nash Price:', self.pN)
+
         # Monopoly Equilibrium Price
-        monopoly_profit = []
-        for i in price_range:
-            p = [i] * num_agents
-            monopoly_profit.append((i - c_i) * self.demand(self.a, p, self.mu, 0) * num_agents)
-        self.pM = price_range[np.argmax(monopoly_profit)]
+        def monopoly_func(p):
+
+            # Below is for finding each agent's monopoly price (currently unnecessary)
+            # function_list = []
+            # for i in range(num_agents):
+            #     function_list.append(-(p[i] - c_i) * self.demand(self.a, p, self.mu, i))
+            # return function_list
+            
+            return -(p[0] - c_i) * self.demand(self.a, p, self.mu, 0)
+
+        monopoly_sol = optimize.minimize(monopoly_func, 0)
+        self.pM = monopoly_sol.x[0]
         print('Monopoly Price:', self.pM)
+
+        # # Finding Monopoly Price by iteration
+        # # Make sure this tries all possibilities
+        # price_range = np.arange(0, 2.5, 0.01)
+        # monopoly_profit = []
+        # for i in price_range:
+        #     p = [i] * num_agents
+        #     monopoly_profit.append((i - c_i) * self.demand(self.a, p, self.mu, 0) * num_agents)
+        # self.pM = price_range[np.argmax(monopoly_profit)]
+        # print('Monopoly Price:', self.pM)
 
         # MultiAgentEnv Action Space
         self.action_space = Discrete(m)
