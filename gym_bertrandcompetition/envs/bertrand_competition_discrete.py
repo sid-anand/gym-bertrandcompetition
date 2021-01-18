@@ -142,6 +142,18 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         ''' MultiAgentEnv Step '''
 
         actions_idx = np.array(list(actions_dict.values())).flatten()
+        
+        # actions_idx = np.array([np.min(actions_idx)] * 2)
+        # self.prices = self.action_price_space.take(actions_idx)
+        # demand = [self.demand(self.a, self.prices, self.mu, 0), self.demand(self.a, self.prices, self.mu, 1)]
+        # actions_idx[0] = 0
+        # print(actions_idx)
+        # temp_actions_idx = [self.m - 1,self.m - 1]
+        # temp_actions_idx = [0, 0]
+        # temp_actions_idx[np.argmin(actions_idx)] = np.max(actions_idx)
+        # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
+        # actions_idx = np.array(temp_actions_idx)
+        # print(actions_idx)
 
         if self.use_pickle:
             with open('./arrays/' + self.savefile + '.pkl', 'ab') as f:

@@ -20,7 +20,7 @@ from ray.tune.logger import pretty_print
 num_agents = 2
 k = 1
 m = 15
-max_steps = 2000000 # 1000000000 from Calvano paper
+max_steps = 1250000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
 state_space = 'discrete' # 'discrete' or 'continuous'
