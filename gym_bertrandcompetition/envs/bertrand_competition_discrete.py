@@ -163,7 +163,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             self.action_history[self.players[i]].append(actions_idx[i])
 
         if self.k > 0:
-            obs_players = np.array([self.action_history[self.players[i]][-self.k:] for i in range(self.num_agents)]).flatten()
+            obs_players = np.array([self.action_history[self.players[i]][-self.k:] for i in range(self.num_agents)], dtype=object).flatten()
             observation = dict(zip(self.players, [obs_players for i in range(self.num_agents)]))
         else:
             observation = dict(zip(self.players, [self.numeric_low for _ in range(self.num_agents)]))
@@ -221,7 +221,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             self.action_history[self.players[i]].append(random_action[i])
 
         if self.k > 0:
-            obs_players = np.array([self.action_history[self.players[i]][-self.k:] for i in range(self.num_agents)]).flatten()
+            obs_players = np.array([self.action_history[self.players[i]][-self.k:] for i in range(self.num_agents)], dtype=object).flatten()
             observation = dict(zip(self.players, [obs_players for i in range(self.num_agents)]))
         else:
             observation = dict(zip(self.players, [self.numeric_low for _ in range(self.num_agents)]))
