@@ -18,19 +18,19 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
 num_agents = 2
-k = 1
+k = 2
 m = 15
-max_steps = 1500000 # 1000000000 from Calvano paper
+max_steps = 1000000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
-state_space = 'discrete' # 'discrete' or 'continuous'
+state_space = 'continuous' # 'discrete' or 'continuous'
 
-use_pickle = False
+use_pickle = True
 num_gpus = 0
 overwrite_id = 0
 len_eval_after_deviation = 20
 # choose from QL, SARSA, DQN, PPO, A3C, A2C, DDPG
-trainer_choice = 'QL'
+trainer_choice = 'DDPG'
 
 if state_space == 'discrete':
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
