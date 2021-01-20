@@ -15,27 +15,35 @@ import matplotlib.pyplot as plt
 from ray.tune.registry import register_env
 from ray.tune.logger import pretty_print
 
+path = os.path.abspath(os.getcwd())
+
 # CHANGE PARAMETERS FOR TESTING
 # Parameters
 num_agents = 2
-k = 2
+k = 1
 m = 15
 max_steps = 1000000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
-state_space = 'continuous' # 'discrete' or 'continuous'
+state_space = 'discrete' # 'discrete' or 'continuous'
 
 use_pickle = True
 num_gpus = 0
 overwrite_id = 0
 len_eval_after_deviation = 20
 # choose from QL, SARSA, DQN, PPO, A3C, A2C, DDPG
-trainer_choice = 'DDPG'
+trainer_choice = 'DQN'
+
+# Hyperparameters
+alpha = 0.15 # Change these to test Calvano results
+beta = 0.00001 # Change these to test Calvano results
+delta = 0.95
+log_frequency = 50000
 
 if state_space == 'discrete':
-    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle)
+    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
 elif state_space == 'continuous':
-    env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, use_pickle=use_pickle)
+    env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
 
 config = {
     'env_config': {
@@ -49,7 +57,7 @@ config = {
     # Change 'explore' to True to False to evaluate (https://docs.ray.io/en/master/rllib-training.html)
     # 'monitor': True,
     # Change 'log_level' to 'INFO' for more information
-    'gamma': 0.95
+    'gamma': delta
 } # Perhaps specify to use GPU in config? (https://docs.ray.io/en/latest/using-ray-with-gpus.html)
 
 savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl'
@@ -91,7 +99,7 @@ if trainer_choice not in ['QL', 'SARSA']:
                 # Config for the Exploration class' constructor:
                 "initial_epsilon": 1.0,
                 "final_epsilon": 0.000001,
-                "epsilon_timesteps": 100000,  # Timesteps over which to anneal epsilon.
+                "epsilon_timesteps": 250000,  # Timesteps over which to anneal epsilon.
             }
         trainer = DQNTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'PPO':
@@ -117,21 +125,31 @@ if trainer_choice not in ['QL', 'SARSA']:
     if use_pickle and os.path.isfile(savefile):
         os.remove(savefile)
 
-    # analysis = tune.run(trainer_choice, config=config, local_dir='./log', checkpoint_at_end=True)
-    # checkpoints = analysis.get_trial_checkpoints_paths(trial=analysis.get_best_trial("episode_reward_mean"), metric="episode_reward_mean")
+    analysis = tune.run(
+        trainer_choice, 
+        # num_samples = 4,
+        config = config, 
+        local_dir = './log', 
+        stop = {'training_iteration': 1},
+        mode = 'max',
+        metric = 'episode_reward_mean',
+        checkpoint_at_end = True
+    )
 
-    for i in range(sessions):
-        result = trainer.train()
+    trainer.restore(analysis.best_checkpoint)
 
-        print(s.format(
-        i + 1,
-        result["episode_reward_min"],
-        result["episode_reward_mean"],
-        result["episode_reward_max"],
-        result["episode_len_mean"]))
+    # for i in range(sessions):
+    #     result = trainer.train()
 
-        # checkpoint = trainer.save()
-        # print('Checkpoint: ', checkpoint)
+    #     print(s.format(
+    #     i + 1,
+    #     result["episode_reward_min"],
+    #     result["episode_reward_mean"],
+    #     result["episode_reward_max"],
+    #     result["episode_len_mean"]))
+
+    #     checkpoint = trainer.save()
+    #     print('Checkpoint: ', checkpoint)
 
     if use_pickle:
         action_history_list = []
@@ -165,12 +183,6 @@ if trainer_choice not in ['QL', 'SARSA']:
 elif trainer_choice == 'QL':
     # Q-learning
 
-    # Hyperparameters
-    alpha = 0.15 # Change these to test Calvano results
-    beta = 0.00001 # Change these to test Calvano results
-    delta = 0.95
-    log_frequency = 50000
-
     q_learner = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
 
     q_learner.train()
@@ -193,12 +205,6 @@ elif trainer_choice == 'QL':
 elif trainer_choice == 'SARSA':
     # SARSA
     # NOTE: This is the same as Q-learning since our 'policy' is to take the maximum value action
-
-    # Hyperparameters
-    alpha = 0.15 # Change these to test Calvano results
-    beta = 0.00001 # Change these to test Calvano results
-    delta = 0.95
-    log_frequency = 50000
 
     sarsa = SARSA(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
 

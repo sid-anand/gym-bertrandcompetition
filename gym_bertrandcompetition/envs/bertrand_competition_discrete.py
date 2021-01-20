@@ -17,7 +17,7 @@ import warnings
 class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, sessions=1, convergence=5, trainer_choice='DQN', use_pickle=False):
+    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, sessions=1, convergence=5, trainer_choice='DQN', use_pickle=False, path=''):
 
         super(BertrandCompetitionDiscreteEnv, self).__init__()
         self.num_agents = num_agents
@@ -126,6 +126,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.players = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
         self.use_pickle = use_pickle
+        self.path = path
         self.savefile = 'discrete_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.sessions) + '_sessions'
 
         for i in range(num_agents):
@@ -156,7 +157,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # print(actions_idx)
 
         if self.use_pickle:
-            with open('./arrays/' + self.savefile + '.pkl', 'ab') as f:
+            with open(self.path + './arrays/' + self.savefile + '.pkl', 'ab') as f:
                 pickle.dump(actions_idx, f)
 
         for i in range(actions_idx.size):
