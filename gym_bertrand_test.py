@@ -180,47 +180,25 @@ if trainer_choice not in ['QL', 'SARSA']:
 
         os.remove(savefile)
 
-elif trainer_choice == 'QL':
-    # Q-learning
+else:
+    if trainer_choice == 'QL':
+        trainer = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
+    elif trainer_choice == 'SARSA':
+        trainer = SARSA(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
 
-    q_learner = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
-
-    q_learner.train()
+    trainer.train()
 
     with open('./q_tables/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl', 'wb') as f:
-        pickle.dump(q_learner.q_table, f)
+        pickle.dump(trainer.q_table, f)
 
     env.plot(overwrite_id=overwrite_id)
     env.plot_last(last_n=1000, overwrite_id=overwrite_id)
     env.plot_last(last_n=100, overwrite_id=overwrite_id)
 
     observation = env.deviate(direction='down')
-    q_learner.eval(observation, n=len_eval_after_deviation)
+    trainer.eval(observation, n=len_eval_after_deviation)
     env.plot_last(last_n=25, title_str='_down_deviation', overwrite_id=overwrite_id)
 
     observation = env.deviate(direction='up')
-    q_learner.eval(observation, n=len_eval_after_deviation)
-    env.plot_last(last_n=25, title_str='_up_deviation', overwrite_id=overwrite_id)
-
-elif trainer_choice == 'SARSA':
-    # SARSA
-    # NOTE: This is the same as Q-learning since our 'policy' is to take the maximum value action
-
-    sarsa = SARSA(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
-
-    sarsa.train()
-
-    with open('./q_tables/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl', 'wb') as f:
-        pickle.dump(sarsa.q_table, f)
-
-    env.plot(overwrite_id=overwrite_id)
-    env.plot_last(last_n=1000, overwrite_id=overwrite_id)
-    env.plot_last(last_n=100, overwrite_id=overwrite_id)
-
-    observation = env.deviate(direction='down')
-    sarsa.eval(observation, n=len_eval_after_deviation)
-    env.plot_last(last_n=25, title_str='_down_deviation', overwrite_id=overwrite_id)
-
-    observation = env.deviate(direction='up')
-    sarsa.eval(observation, n=len_eval_after_deviation)
+    trainer.eval(observation, n=len_eval_after_deviation)
     env.plot_last(last_n=25, title_str='_up_deviation', overwrite_id=overwrite_id)
