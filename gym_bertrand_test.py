@@ -15,24 +15,17 @@ import matplotlib.pyplot as plt
 from ray.tune.registry import register_env
 from ray.tune.logger import pretty_print
 
-path = os.path.abspath(os.getcwd())
-
 # CHANGE PARAMETERS FOR TESTING
+
+# Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
+trainer_choice = 'DQN'
+
 # Parameters
 num_agents = 2
-k = 1
+k = 0
 m = 15
-max_steps = 1000000 # 1000000000 from Calvano paper
 convergence = 100000
 sessions = 1
-state_space = 'discrete' # 'discrete' or 'continuous'
-
-use_pickle = True
-num_gpus = 0
-overwrite_id = 0
-len_eval_after_deviation = 20
-# choose from QL, SARSA, DQN, PPO, A3C, A2C, DDPG
-trainer_choice = 'DQN'
 
 # Hyperparameters
 alpha = 0.15 # Change these to test Calvano results
@@ -40,10 +33,10 @@ beta = 0.00001 # Change these to test Calvano results
 delta = 0.95
 log_frequency = 50000
 
-if state_space == 'discrete':
-    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
-elif state_space == 'continuous':
-    env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
+# Performance and Testing
+num_gpus = 0
+overwrite_id = 1
+len_eval_after_deviation = 20
 
 config = {
     'env_config': {
@@ -51,16 +44,16 @@ config = {
     },
     'env': 'Bertrand',
     'num_gpus': num_gpus,
-    'train_batch_size': 200, # Does this limit training?
-    'rollout_fragment_length': 200, # Does this limit training?
+    'train_batch_size': 200,
+    'rollout_fragment_length': 200,
     'batch_mode': 'complete_episodes',
     # Change 'explore' to True to False to evaluate (https://docs.ray.io/en/master/rllib-training.html)
     # 'monitor': True,
     # Change 'log_level' to 'INFO' for more information
     'gamma': delta
-} # Perhaps specify to use GPU in config? (https://docs.ray.io/en/latest/using-ray-with-gpus.html)
+}
 
-savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl'
+path = os.path.abspath(os.getcwd())
 
 def eval_then_unload(observation):
     for i in range(len_eval_after_deviation):
@@ -88,6 +81,19 @@ def eval_then_unload(observation):
 
 
 if trainer_choice not in ['QL', 'SARSA']:
+
+    use_pickle = True
+    max_steps = 1000000
+
+    if trainer_choice in ['DQN', 'PPO']:
+        state_space = 'discrete'
+        env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
+    else:
+        state_space = 'continuous'
+        env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
+
+    savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl'
+
     register_env('Bertrand', lambda env_config: env)
     ray.init(num_cpus=4)
 
@@ -120,8 +126,6 @@ if trainer_choice not in ['QL', 'SARSA']:
         from ray.rllib.agents.ddpg import DDPGTrainer
         trainer = DDPGTrainer(config = config, env = 'Bertrand')
 
-    s = "Epoch {:3d} / Reward Min: {:6.2f} / Mean: {:6.2f} / Max: {:6.2f} / Steps {:6.2f}"
-
     if use_pickle and os.path.isfile(savefile):
         os.remove(savefile)
 
@@ -137,6 +141,8 @@ if trainer_choice not in ['QL', 'SARSA']:
     )
 
     trainer.restore(analysis.best_checkpoint)
+
+    # s = "Epoch {:3d} / Reward Min: {:6.2f} / Mean: {:6.2f} / Max: {:6.2f} / Steps {:6.2f}"
 
     # for i in range(sessions):
     #     result = trainer.train()
@@ -181,6 +187,13 @@ if trainer_choice not in ['QL', 'SARSA']:
         os.remove(savefile)
 
 else:
+
+    max_steps = 2000000
+    state_space = 'discrete'
+    use_pickle = False
+
+    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
+
     if trainer_choice == 'QL':
         trainer = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
     elif trainer_choice == 'SARSA':
