@@ -35,7 +35,7 @@ log_frequency = 50000
 
 # Performance and Testing
 num_gpus = 0
-overwrite_id = 1
+overwrite_id = 2
 len_eval_after_deviation = 20
 
 config = {
@@ -60,9 +60,9 @@ def eval_then_unload(observation):
         # action = trainer.compute_action(observation)
         action = {}
         for agent_id, agent_obs in observation.items():
-            # policy_id = self.config['multiagent']['policy_mapping_fn'](agent_id)
-            # action[agent_id] = self.agent.compute_action(agent_obs, policy_id=policy_id) # Does this imply I'm using the same policy for both agents?
-            action[agent_id] = trainer.compute_action(agent_obs)
+            policy_id = config['multiagent']['policy_mapping_fn'](agent_id)
+            action[agent_id] = trainer.compute_action(agent_obs, policy_id=policy_id)
+            # action[agent_id] = trainer.compute_action(agent_obs) # From before multi-agent integration
         observation, _, _, _ = env.step(action)
 
     action_history_list = []
@@ -83,7 +83,7 @@ def eval_then_unload(observation):
 if trainer_choice not in ['QL', 'SARSA']:
 
     use_pickle = True
-    max_steps = 1000000
+    max_steps = 200000
 
     if trainer_choice in ['DQN', 'PPO']:
         state_space = 'discrete'
@@ -91,6 +91,22 @@ if trainer_choice not in ['QL', 'SARSA']:
     else:
         state_space = 'continuous'
         env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
+
+    multiagent_dict = dict()
+    multiagent_policies = dict()
+
+    for agent in env.players:
+        agent_entry = (
+            None,
+            env.observation_space,
+            env.action_space,
+            {}
+        )
+        multiagent_policies[agent] = agent_entry
+
+    multiagent_dict['policies'] = multiagent_policies
+    multiagent_dict['policy_mapping_fn'] = lambda agent_id: agent_id
+    config['multiagent'] = multiagent_dict
 
     savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl'
 
@@ -134,7 +150,7 @@ if trainer_choice not in ['QL', 'SARSA']:
         # num_samples = 4,
         config = config, 
         local_dir = './log', 
-        stop = {'training_iteration': 1},
+        stop = {'training_iteration': sessions},
         mode = 'max',
         metric = 'episode_reward_mean',
         checkpoint_at_end = True
