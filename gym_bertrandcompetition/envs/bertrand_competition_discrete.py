@@ -102,6 +102,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # self.pM = price_range[np.argmax(monopoly_profit)]
         # print('Monopoly Price:', self.pM)
 
+        # MultiAgentEnv Action and Observation Space
         self.agents = [ 'agent_' + str(i) for i in range(num_agents)]
         self.observation_spaces = {}
         self.action_spaces = {}
@@ -140,15 +141,14 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.convergence = convergence
         self.convergence_counter = 0
         self.trainer_choice = trainer_choice
-        self.agents = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
         self.use_pickle = use_pickle
         self.path = path
         self.savefile = 'discrete_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.sessions) + '_sessions'
 
-        for i in range(num_agents):
-            if self.agents[i] not in self.action_history:
-                self.action_history[self.agents[i]] = [self.action_space.sample()]
+        for agent in self.agents:
+            if agent not in self.action_history:
+                self.action_history[agent] = [self.action_spaces[agent].sample()]
 
         self.reset()
 

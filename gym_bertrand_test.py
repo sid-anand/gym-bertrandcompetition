@@ -99,8 +99,8 @@ if trainer_choice not in ['QL', 'SARSA']:
     for agent in env.agents:
         agent_entry = (
             None,
-            env.observation_space,
-            env.action_space,
+            env.observation_spaces[agent],
+            env.action_spaces[agent],
             {}
         )
         multiagent_policies[agent] = agent_entry

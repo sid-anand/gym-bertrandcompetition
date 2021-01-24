@@ -71,37 +71,56 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         self.pM = monopoly_sol.x[0]
         print('Monopoly Price:', self.pM)
 
-        # MultiAgentEnv Action Space
-        self.low_price = self.pN - xi * (self.pM - self.pN)
-        self.high_price = self.pM + xi * (self.pM - self.pN)
-        self.action_space = Box(np.array([self.low_price]), np.array([self.high_price]))
-        
-        # MultiAgentEnv Observation Space
+        # MultiAgentEnv Action and Observation Space
+        self.agents = [ 'agent_' + str(i) for i in range(num_agents)]
+        self.observation_spaces = {}
+        self.action_spaces = {}
+
         if k > 0:
             self.numeric_low = np.array([self.low_price] * (k * num_agents))
             numeric_high = np.array([self.high_price] * (k * num_agents))
-            self.observation_space = Box(self.numeric_low, numeric_high)
+            obs_space = Box(self.numeric_low, numeric_high)
         else:
             self.numeric_low = np.array([self.low_price] * num_agents)
             numeric_high = np.array([self.high_price] * num_agents)
-            self.observation_space = Box(self.numeric_low, numeric_high)
+            obs_space = Box(self.numeric_low, numeric_high)
+
+        self.low_price = self.pN - xi * (self.pM - self.pN)
+        self.high_price = self.pM + xi * (self.pM - self.pN)
+        act_space = Box(np.array([self.low_price]), np.array([self.high_price]))
+        
+        for agent in self.agents:
+            self.observation_spaces[agent] = obs_space
+            self.action_spaces[agent] = act_space
+
+        # # MultiAgentEnv Action Space
+        # self.low_price = self.pN - xi * (self.pM - self.pN)
+        # self.high_price = self.pM + xi * (self.pM - self.pN)
+        # self.action_space = Box(np.array([self.low_price]), np.array([self.high_price]))
+        
+        # # MultiAgentEnv Observation Space
+        # if k > 0:
+        #     self.numeric_low = np.array([self.low_price] * (k * num_agents))
+        #     numeric_high = np.array([self.high_price] * (k * num_agents))
+        #     self.observation_space = Box(self.numeric_low, numeric_high)
+        # else:
+        #     self.numeric_low = np.array([self.low_price] * num_agents)
+        #     numeric_high = np.array([self.high_price] * num_agents)
+        #     self.observation_space = Box(self.numeric_low, numeric_high)
 
         self.reward_range = (-float('inf'), float('inf'))
         self.current_step = None
         self.max_steps = max_steps
         self.sessions = sessions
         self.trainer_choice = trainer_choice
-        self.agents = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
         self.use_pickle = use_pickle
         self.path = path
         self.savefile = 'continuous_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.sessions) + '_sessions'
 
-        for i in range(num_agents):
-            if self.agents[i] not in self.action_history:
-                self.action_history[self.agents[i]] = []
-                for _ in range(k):
-                    self.action_history[self.agents[i]].append(self.action_space.sample()[0])
+        for agent in self.agents:
+            if agent not in self.action_history:
+                self.action_history[agent] = [self.action_spaces[agent].sample()[0]]
 
         self.reset()
 
