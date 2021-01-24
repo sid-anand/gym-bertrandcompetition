@@ -17,7 +17,7 @@ import warnings
 class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, sessions=1, convergence=5, trainer_choice='DQN', use_pickle=False, path=''):
+    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, sessions=1, convergence=5, trainer_choice='DQN', mitigation_agent=False, use_pickle=False, path=''):
 
         super(BertrandCompetitionDiscreteEnv, self).__init__()
         self.num_agents = num_agents
@@ -67,12 +67,12 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # nash_temp = 0
         # for i in price_range:
         #     p = [i] * num_agents
-        #     first_player_profit = (i - c_i) * self.demand(self.a, p, self.mu, 0)
+        #     first_agent_profit = (i - c_i) * self.demand(self.a, p, self.mu, 0)
         #     new_profit = []
         #     for j in price_range:
         #         p[0] = j
         #         new_profit.append((j - c_i) * self.demand(self.a, p, self.mu, 0))
-        #     if first_player_profit >= np.max(new_profit):
+        #     if first_agent_profit >= np.max(new_profit):
         #         nash_temp = i
         # self.pN = nash_temp
         # print('Nash Price:', self.pN)
@@ -102,18 +102,35 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # self.pM = price_range[np.argmax(monopoly_profit)]
         # print('Monopoly Price:', self.pM)
 
-        # MultiAgentEnv Action Space
-        self.action_space = Discrete(m)
-        
-        # MultiAgentEnv Observation Space
+        self.agents = [ 'agent_' + str(i) for i in range(num_agents)]
+        self.observation_spaces = {}
+        self.action_spaces = {}
+
         if k > 0:
             self.numeric_low = np.array([0] * (k * num_agents))
             numeric_high = np.array([m] * (k * num_agents))
-            self.observation_space = Box(self.numeric_low, numeric_high, dtype=int)
+            obs_space = Box(self.numeric_low, numeric_high, dtype=int)
         else:
             self.numeric_low = np.array([0] * num_agents)
             numeric_high = np.array([m] * num_agents)
-            self.observation_space = Box(self.numeric_low, numeric_high, dtype=int)
+            obs_space = Box(self.numeric_low, numeric_high, dtype=int)
+
+        for agent in self.agents:
+            self.observation_spaces[agent] = obs_space
+            self.action_spaces[agent] = Discrete(m)
+
+        # MultiAgentEnv Action Space
+        # self.action_space = Discrete(m)
+        
+        # MultiAgentEnv Observation Space
+        # if k > 0:
+        #     self.numeric_low = np.array([0] * (k * num_agents))
+        #     numeric_high = np.array([m] * (k * num_agents))
+        #     self.observation_space = Box(self.numeric_low, numeric_high, dtype=int)
+        # else:
+        #     self.numeric_low = np.array([0] * num_agents)
+        #     numeric_high = np.array([m] * num_agents)
+        #     self.observation_space = Box(self.numeric_low, numeric_high, dtype=int)
 
         self.action_price_space = np.linspace(self.pN - xi * (self.pM - self.pN), self.pM + xi * (self.pM - self.pN), m)
         self.reward_range = (-float('inf'), float('inf'))
@@ -123,15 +140,15 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.convergence = convergence
         self.convergence_counter = 0
         self.trainer_choice = trainer_choice
-        self.players = [ 'agent_' + str(i) for i in range(num_agents)]
+        self.agents = [ 'agent_' + str(i) for i in range(num_agents)]
         self.action_history = {}
         self.use_pickle = use_pickle
         self.path = path
         self.savefile = 'discrete_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.sessions) + '_sessions'
 
         for i in range(num_agents):
-            if self.players[i] not in self.action_history:
-                self.action_history[self.players[i]] = [self.action_space.sample()]
+            if self.agents[i] not in self.action_history:
+                self.action_history[self.agents[i]] = [self.action_space.sample()]
 
         self.reset()
 
@@ -161,13 +178,13 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
                 pickle.dump(actions_idx, f)
 
         for i in range(actions_idx.size):
-            self.action_history[self.players[i]].append(actions_idx[i])
+            self.action_history[self.agents[i]].append(actions_idx[i])
 
         if self.k > 0:
-            obs_players = np.array([self.action_history[self.players[i]][-self.k:] for i in range(self.num_agents)], dtype=object).flatten()
-            observation = dict(zip(self.players, [obs_players for i in range(self.num_agents)]))
+            obs_agents = np.array([self.action_history[self.agents[i]][-self.k:] for i in range(self.num_agents)], dtype=object).flatten()
+            observation = dict(zip(self.agents, [obs_agents for i in range(self.num_agents)]))
         else:
-            observation = dict(zip(self.players, [self.numeric_low for _ in range(self.num_agents)]))
+            observation = dict(zip(self.agents, [self.numeric_low for _ in range(self.num_agents)]))
 
         self.prices = self.action_price_space.take(actions_idx)
         reward = np.array([0.0] * self.num_agents)
@@ -175,9 +192,9 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         for i in range(self.num_agents):
             reward[i] = (self.prices[i] - self.c_i) * self.demand(self.a, self.prices, self.mu, i)
 
-        reward = dict(zip(self.players, reward))
+        reward = dict(zip(self.agents, reward))
 
-        if self.action_history[self.players[0]][-2] == self.action_history[self.players[0]][-1]:
+        if self.action_history[self.agents[0]][-2] == self.action_history[self.agents[0]][-1]:
             self.convergence_counter += 1
         else:
             self.convergence_counter = 0
@@ -186,9 +203,9 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             done = {'__all__': True}
         else:
             done = {'__all__': False}
-        # done = {'__all__': np.all(np.array(self.action_history[self.players[0]][-self.convergence:]) == self.action_history[self.players[0]][-1])
+        # done = {'__all__': np.all(np.array(self.action_history[self.agents[0]][-self.convergence:]) == self.action_history[self.agents[0]][-1])
         #                            or self.current_step == self.max_steps}
-        info = dict(zip(self.players, [{}]*self.num_agents))
+        info = dict(zip(self.agents, [{}]*self.num_agents))
 
         self.current_step += 1
 
@@ -198,15 +215,15 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         deviate_actions_dict = {}
 
         if direction == 'down':
-            # First player deviates to lowest price
-            deviate_actions_dict[self.players[0]] = 0
+            # First agent deviates to lowest price
+            deviate_actions_dict[self.agents[0]] = 0
         elif direction == 'up':
-            # First player deviates to highest price
-            deviate_actions_dict[self.players[0]] = self.m - 1
+            # First agent deviates to highest price
+            deviate_actions_dict[self.agents[0]] = self.m - 1
 
         for agent in range(1, self.num_agents):
-            # All other player remain at previous price (large assumption)
-            deviate_actions_dict[self.players[agent]] = self.action_history[self.players[agent]][-1]
+            # All other agents remain at previous price (large assumption)
+            deviate_actions_dict[self.agents[agent]] = self.action_history[self.agents[agent]][-1]
 
         observation, _, _, _ = self.step(deviate_actions_dict)
 
@@ -219,25 +236,25 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         random_action = np.random.randint(self.m, size=self.num_agents)
 
         for i in range(random_action.size):
-            self.action_history[self.players[i]].append(random_action[i])
+            self.action_history[self.agents[i]].append(random_action[i])
 
         if self.k > 0:
-            obs_players = np.array([self.action_history[self.players[i]][-self.k:] for i in range(self.num_agents)], dtype=object).flatten()
-            observation = dict(zip(self.players, [obs_players for i in range(self.num_agents)]))
+            obs_agents = np.array([self.action_history[self.agents[i]][-self.k:] for i in range(self.num_agents)], dtype=object).flatten()
+            observation = dict(zip(self.agents, [obs_agents for i in range(self.num_agents)]))
         else:
-            observation = dict(zip(self.players, [self.numeric_low for _ in range(self.num_agents)]))
+            observation = dict(zip(self.agents, [self.numeric_low for _ in range(self.num_agents)]))
             
         return observation
 
     def plot(self, window=1000, overwrite_id=0):
         '''Plot action history.'''
         warnings.filterwarnings('ignore')
-        n = len(self.action_history[self.players[0]])
+        n = len(self.action_history[self.agents[0]])
         x = np.arange(n)
-        for player in self.players:
-            plt.plot(x, self.action_price_space.take(self.action_history[player]), alpha=0.75, label=player)
-        for player in self.players:
-            plt.plot(x, pd.Series(self.action_price_space.take(self.action_history[player])).rolling(window=window).mean(), alpha=0.5, label=player + ' MA')
+        for agent in self.agents:
+            plt.plot(x, self.action_price_space.take(self.action_history[agent]), alpha=0.75, label=agent)
+        for agent in self.agents:
+            plt.plot(x, pd.Series(self.action_price_space.take(self.action_history[agent])).rolling(window=window).mean(), alpha=0.5, label=agent + ' MA')
         plt.plot(x, np.repeat(self.pM, n), 'r--', label='Monopoly')
         plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
         plt.xlabel('Steps')
@@ -249,8 +266,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
     def plot_last(self, last_n=1000, title_str = '', overwrite_id=0):
         x = np.arange(last_n)
-        for player in self.players:
-            plt.plot(x, self.action_price_space.take(self.action_history[player][-last_n:]), alpha=0.75, label=player)
+        for agent in self.agents:
+            plt.plot(x, self.action_price_space.take(self.action_history[agent][-last_n:]), alpha=0.75, label=agent)
         plt.plot(x, np.repeat(self.pM, last_n), 'r--', label='Monopoly')
         plt.plot(x, np.repeat(self.pN, last_n), 'b--', label='Nash')
         plt.xlabel('Steps')

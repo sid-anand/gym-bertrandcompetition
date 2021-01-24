@@ -19,6 +19,7 @@ from ray.tune.logger import pretty_print
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
 trainer_choice = 'DQN'
+mitigation_agent = True
 
 # Parameters
 num_agents = 2
@@ -75,7 +76,7 @@ def eval_then_unload(observation):
 
     action_history_array = np.array(action_history_list).transpose()
     for i in range(num_agents):
-        env.action_history[env.players[i]].extend(action_history_array[i].tolist())
+        env.action_history[env.agents[i]].extend(action_history_array[i].tolist())
 
 
 
@@ -87,15 +88,15 @@ if trainer_choice not in ['QL', 'SARSA']:
 
     if trainer_choice in ['DQN', 'PPO']:
         state_space = 'discrete'
-        env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
+        env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, mitigation_agent=mitigation_agent, use_pickle=use_pickle, path=path)
     else:
         state_space = 'continuous'
-        env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
+        env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, mitigation_agent=mitigation_agent, use_pickle=use_pickle, path=path)
 
     multiagent_dict = dict()
     multiagent_policies = dict()
 
-    for agent in env.players:
+    for agent in env.agents:
         agent_entry = (
             None,
             env.observation_space,
@@ -184,7 +185,7 @@ if trainer_choice not in ['QL', 'SARSA']:
 
         action_history_array = np.array(action_history_list).transpose()
         for i in range(num_agents):
-            env.action_history[env.players[i]] = action_history_array[i].tolist()
+            env.action_history[env.agents[i]] = action_history_array[i].tolist()
 
         env.plot(overwrite_id=overwrite_id)
         env.plot_last(last_n=1000, overwrite_id=overwrite_id)
@@ -208,7 +209,7 @@ else:
     state_space = 'discrete'
     use_pickle = False
 
-    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, use_pickle=use_pickle, path=path)
+    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, mitigation_agent=mitigation_agent, use_pickle=use_pickle, path=path)
 
     if trainer_choice == 'QL':
         trainer = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
