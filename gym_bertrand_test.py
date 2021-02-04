@@ -19,11 +19,11 @@ from ray.tune.logger import pretty_print
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
 trainer_choice = 'DQN'
-mitigation_agent = True
+supervisor = True # Supervisor for mitigation
 
 # Parameters
 num_agents = 2
-k = 0
+k = 1
 m = 15
 convergence = 100000
 sessions = 1
@@ -36,7 +36,7 @@ log_frequency = 50000
 
 # Performance and Testing
 num_gpus = 0
-overwrite_id = 2
+overwrite_id = 3
 len_eval_after_deviation = 20
 
 config = {
@@ -74,6 +74,9 @@ def eval_then_unload(observation):
             except EOFError:
                 break
 
+    for i in range(len(action_history_list)):
+        if len(action_history_list[i]) != 3:
+            print(i)
     action_history_array = np.array(action_history_list).transpose()
     for i in range(num_agents):
         env.action_history[env.agents[i]].extend(action_history_array[i].tolist())
@@ -88,10 +91,10 @@ if trainer_choice not in ['QL', 'SARSA']:
 
     if trainer_choice in ['DQN', 'PPO']:
         state_space = 'discrete'
-        env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, mitigation_agent=mitigation_agent, use_pickle=use_pickle, path=path)
+        env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, supervisor=supervisor, use_pickle=use_pickle, path=path)
     else:
         state_space = 'continuous'
-        env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, mitigation_agent=mitigation_agent, use_pickle=use_pickle, path=path)
+        env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, supervisor=supervisor, use_pickle=use_pickle, path=path)
 
     multiagent_dict = dict()
     multiagent_policies = dict()
@@ -105,11 +108,20 @@ if trainer_choice not in ['QL', 'SARSA']:
         )
         multiagent_policies[agent] = agent_entry
 
+    if supervisor:
+        agent_entry = (
+            None,
+            env.observation_spaces['supervisor'],
+            env.action_spaces['supervisor'],
+            {}
+        )
+        multiagent_policies['supervisor'] = agent_entry
+
     multiagent_dict['policies'] = multiagent_policies
     multiagent_dict['policy_mapping_fn'] = lambda agent_id: agent_id
     config['multiagent'] = multiagent_dict
 
-    savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl'
+    savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_supervisor_' + supervisor + '_for_' + str(sessions) + '_sessions.pkl'
 
     register_env('Bertrand', lambda env_config: env)
     ray.init(num_cpus=4)
@@ -209,7 +221,7 @@ else:
     state_space = 'discrete'
     use_pickle = False
 
-    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, mitigation_agent=mitigation_agent, use_pickle=use_pickle, path=path)
+    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, supervisor=supervisor, use_pickle=use_pickle, path=path)
 
     if trainer_choice == 'QL':
         trainer = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)

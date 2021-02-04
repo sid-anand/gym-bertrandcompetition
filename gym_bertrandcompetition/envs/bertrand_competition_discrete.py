@@ -17,7 +17,7 @@ import warnings
 class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, sessions=1, convergence=5, trainer_choice='DQN', mitigation_agent=False, use_pickle=False, path=''):
+    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, m = 15, xi = 0.1, k = 1, max_steps=200, sessions=1, convergence=5, trainer_choice='DQN', supervisor=False, use_pickle=False, path=''):
 
         super(BertrandCompetitionDiscreteEnv, self).__init__()
         self.num_agents = num_agents
@@ -103,7 +103,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # print('Monopoly Price:', self.pM)
 
         # MultiAgentEnv Action and Observation Space
-        self.agents = [ 'agent_' + str(i) for i in range(num_agents)]
+        self.agents = ['agent_' + str(i) for i in range(num_agents)]
         self.observation_spaces = {}
         self.action_spaces = {}
 
@@ -119,6 +119,10 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         for agent in self.agents:
             self.observation_spaces[agent] = obs_space
             self.action_spaces[agent] = Discrete(m)
+
+        if supervisor:
+            self.observation_spaces['supervisor'] = obs_space
+            self.action_spaces['supervisor'] = Discrete(num_agents)
 
         # MultiAgentEnv Action Space
         # self.action_space = Discrete(m)
@@ -143,12 +147,20 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.trainer_choice = trainer_choice
         self.action_history = {}
         self.use_pickle = use_pickle
+        self.supervisor = supervisor
         self.path = path
-        self.savefile = 'discrete_' + self.trainer_choice + '_with_' + str(self.num_agents) + '_agents_k_' + str(self.k) + '_for_' + str(self.sessions) + '_sessions'
+
+        if supervisor:
+            self.savefile = 'discrete_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_supervisor_' + supervisor + '_for_' + str(sessions) + '_sessions'
+        else:
+            self.savefile = 'discrete_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions'
 
         for agent in self.agents:
             if agent not in self.action_history:
                 self.action_history[agent] = [self.action_spaces[agent].sample()]
+
+        if supervisor:
+            self.action_history['supervisor'] = [self.action_spaces['supervisor'].sample()]
 
         self.reset()
 
@@ -160,7 +172,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         ''' MultiAgentEnv Step '''
 
         actions_idx = np.array(list(actions_dict.values())).flatten()
-        
+
         # actions_idx = np.array([np.min(actions_idx)] * 2)
         # self.prices = self.action_price_space.take(actions_idx)
         # demand = [self.demand(self.a, self.prices, self.mu, 0), self.demand(self.a, self.prices, self.mu, 1)]
@@ -177,8 +189,11 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             with open(self.path + './arrays/' + self.savefile + '.pkl', 'ab') as f:
                 pickle.dump(actions_idx, f)
 
-        for i in range(actions_idx.size):
+        for i in range(self.num_agents):
             self.action_history[self.agents[i]].append(actions_idx[i])
+
+        if self.supervisor:
+            self.action_history['supervisor'].append(actions_idx[-1])
 
         if self.k > 0:
             obs_agents = np.array([self.action_history[self.agents[i]][-self.k:] for i in range(self.num_agents)], dtype=object).flatten()
@@ -186,11 +201,23 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         else:
             observation = dict(zip(self.agents, [self.numeric_low for _ in range(self.num_agents)]))
 
-        self.prices = self.action_price_space.take(actions_idx)
+        self.prices = self.action_price_space.take(actions_idx[:self.num_agents])
         reward = np.array([0.0] * self.num_agents)
 
-        for i in range(self.num_agents):
-            reward[i] = (self.prices[i] - self.c_i) * self.demand(self.a, self.prices, self.mu, i)
+        if self.supervisor:
+            total_demand = 0
+            proportion = 3/4
+            for i in range(self.num_agents):
+                total_demand += self.demand(self.a, self.prices, self.mu, i)
+            for i in range(self.num_agents):
+                if i == actions_idx[-1]:
+                    demand = total_demand * proportion
+                else:
+                    demand = total_demand * (1 - proportion)
+                reward[i] = (self.prices[i] - self.c_i) * demand
+        else:
+            for i in range(self.num_agents):
+                reward[i] = (self.prices[i] - self.c_i) * self.demand(self.a, self.prices, self.mu, i)
 
         reward = dict(zip(self.agents, reward))
 
@@ -203,11 +230,20 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             done = {'__all__': True}
         else:
             done = {'__all__': False}
-        # done = {'__all__': np.all(np.array(self.action_history[self.agents[0]][-self.convergence:]) == self.action_history[self.agents[0]][-1])
-        #                            or self.current_step == self.max_steps}
+
         info = dict(zip(self.agents, [{}]*self.num_agents))
 
+        if self.supervisor:
+            if self.k > 0: 
+                observation['supervisor'] = obs_agents
+            else:
+                observation['supervisor'] = self.numeric_low
+            reward['supervisor'] = -np.sum(self.prices)
+            info['supervisor'] = {}
+
         self.current_step += 1
+
+        # print(observation, reward, done, info)
 
         return observation, reward, done, info
 
@@ -224,6 +260,9 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         for agent in range(1, self.num_agents):
             # All other agents remain at previous price (large assumption)
             deviate_actions_dict[self.agents[agent]] = self.action_history[self.agents[agent]][-1]
+
+        if self.supervisor:
+            deviate_actions_dict['supervisor'] = self.action_history['supervisor'][-1]
 
         observation, _, _, _ = self.step(deviate_actions_dict)
 
@@ -243,6 +282,12 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             observation = dict(zip(self.agents, [obs_agents for i in range(self.num_agents)]))
         else:
             observation = dict(zip(self.agents, [self.numeric_low for _ in range(self.num_agents)]))
+
+        if self.supervisor:
+            if self.k > 0: 
+                observation['supervisor'] = obs_agents
+            else:
+                observation['supervisor'] = self.numeric_low
             
         return observation
 
@@ -259,7 +304,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
-        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.sessions) + ' Sessions')
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' Supervisor ' + self.supervisor + ' for ' + str(self.sessions) + ' Sessions')
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile + '_' + str(overwrite_id))
         plt.clf()
@@ -272,7 +317,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, last_n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
-        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' for ' + str(self.sessions) + ' Sessions, Last Steps ' + str(last_n) + title_str)
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' Supervisor ' + self.supervisor + ' for ' + str(self.sessions) + ' Sessions, Last Steps ' + str(last_n) + title_str)
         plt.legend()
         plt.savefig('./figures/' + self.savefile + title_str + '_last_steps_' + str(last_n) + '_' + str(overwrite_id))
         plt.clf()
