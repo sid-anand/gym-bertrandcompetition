@@ -26,9 +26,10 @@ class SARSA():
                 self.q_table[agent][observation] = [0] * self.m
 
             if random.uniform(0, 1) < epsilon:
-                actions_dict[self.agents[agent]] = self.env.action_space.sample()
+                actions_dict[self.agents[agent]] = self.env.action_spaces['agent_' + str(agent)].sample()
             else:
                 actions_dict[self.agents[agent]] = np.argmax(self.q_table[agent][observation])
+                # actions_dict[self.agents[agent]] = self.policy[agent]
         return actions_dict
 
     def train(self):
@@ -43,6 +44,7 @@ class SARSA():
 
             observation = self.env.reset()
             observation = str(observation)
+            self.policy = [0] * self.num_agents
             actions_dict = self.choose_action(observation, 1.0)
 
             loop_count = 0
@@ -64,11 +66,14 @@ class SARSA():
                 last_values = [0] * self.num_agents
                 next_Qs = [0] * self.num_agents
                 for agent in range(self.num_agents):
+                    self.policy[agent] = np.argmax(self.q_table[agent][observation])
+
                     if next_observation not in self.q_table[agent]:
                         self.q_table[agent][next_observation] = [0] * self.m
                 
                     last_values[agent] = self.q_table[agent][observation][actions_dict[self.agents[agent]]]
                     next_Qs[agent] = self.q_table[agent][next_observation][actions_dict2[self.agents[agent]]]
+                    # next_Qs[agent] = epsilon * np.mean(self.q_table[agent][next_observation]) + (1 - epsilon) * np.max(self.q_table[agent][next_observation])
                 
                     self.q_table[agent][observation][actions_dict[self.agents[agent]]] = ((1 - self.alpha) * last_values[agent]) + (self.alpha * (reward[self.agents[agent]] + self.delta * next_Qs[agent]))
 

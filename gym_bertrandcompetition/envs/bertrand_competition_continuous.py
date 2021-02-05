@@ -123,7 +123,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         self.path = path
 
         if supervisor:
-            self.savefile = 'continuous_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_supervisor_' + supervisor + '_for_' + str(sessions) + '_sessions'
+            self.savefile = 'continuous_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_supervisor_' + str(supervisor) + '_for_' + str(sessions) + '_sessions'
         else:
             self.savefile = 'continuous_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions'
 
@@ -254,7 +254,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
-        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' Supervisor ' + self.supervisor + ' for ' + str(self.sessions) + ' Sessions')
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' Supervisor ' + str(self.supervisor) + ' for ' + str(self.sessions) + ' Sessions')
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile + '_' + str(overwrite_id))
         plt.clf()
@@ -268,7 +268,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, last_n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
-        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' Supervisor ' + self.supervisor + ' for ' + str(self.sessions) + ' Sessions, Last Steps ' + str(last_n) + title_str)
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' Supervisor ' + str(self.supervisor) + ' for ' + str(self.sessions) + ' Sessions, Last Steps ' + str(last_n) + title_str)
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile + title_str + '_last_steps_' + str(last_n) + '_' + str(overwrite_id))
         plt.clf()

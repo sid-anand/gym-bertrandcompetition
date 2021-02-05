@@ -47,7 +47,7 @@ class Q_Learner():
                         self.q_table[agent][observation] = [0] * self.m
 
                     if random.uniform(0, 1) < epsilon:
-                        actions_dict[self.agents[agent]] = self.env.action_space.sample()
+                        actions_dict[self.agents[agent]] = self.env.action_spaces['agent_' + str(agent)].sample()
                     else:
                         actions_dict[self.agents[agent]] = np.argmax(self.q_table[agent][observation])
 

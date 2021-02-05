@@ -19,7 +19,7 @@ from ray.tune.logger import pretty_print
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
 trainer_choice = 'DQN'
-supervisor = True # Supervisor for mitigation
+supervisor = False # Supervisor for mitigation
 
 # Parameters
 num_agents = 2
@@ -36,7 +36,7 @@ log_frequency = 50000
 
 # Performance and Testing
 num_gpus = 0
-overwrite_id = 3
+overwrite_id = 2
 len_eval_after_deviation = 20
 
 config = {
@@ -121,7 +121,7 @@ if trainer_choice not in ['QL', 'SARSA']:
     multiagent_dict['policy_mapping_fn'] = lambda agent_id: agent_id
     config['multiagent'] = multiagent_dict
 
-    savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_supervisor_' + supervisor + '_for_' + str(sessions) + '_sessions.pkl'
+    savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_supervisor_' + str(supervisor) + '_for_' + str(sessions) + '_sessions.pkl'
 
     register_env('Bertrand', lambda env_config: env)
     ray.init(num_cpus=4)
@@ -170,21 +170,6 @@ if trainer_choice not in ['QL', 'SARSA']:
     )
 
     trainer.restore(analysis.best_checkpoint)
-
-    # s = "Epoch {:3d} / Reward Min: {:6.2f} / Mean: {:6.2f} / Max: {:6.2f} / Steps {:6.2f}"
-
-    # for i in range(sessions):
-    #     result = trainer.train()
-
-    #     print(s.format(
-    #     i + 1,
-    #     result["episode_reward_min"],
-    #     result["episode_reward_mean"],
-    #     result["episode_reward_max"],
-    #     result["episode_len_mean"]))
-
-    #     checkpoint = trainer.save()
-    #     print('Checkpoint: ', checkpoint)
 
     if use_pickle:
         action_history_list = []
