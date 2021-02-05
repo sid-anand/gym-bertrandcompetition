@@ -206,7 +206,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         if self.supervisor:
             total_demand = 0
-            proportion = 3/4
+            proportion = 0.75
             for i in range(self.num_agents):
                 total_demand += self.demand(self.a, self.prices, self.mu, i)
             for i in range(self.num_agents):
@@ -238,7 +238,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
                 observation['supervisor'] = obs_agents
             else:
                 observation['supervisor'] = self.numeric_low
-            reward['supervisor'] = -np.sum(self.prices)
+            reward['supervisor'] = -np.prod(self.prices)
             info['supervisor'] = {}
 
         self.current_step += 1

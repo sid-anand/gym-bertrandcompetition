@@ -6,18 +6,22 @@ from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandC
 
 class Q_Learner():
 
-    def __init__(self, env, num_agents=2, m=15, alpha=0.05, beta=0.2, delta=0.99, sessions=1, log_frequency=10000):
+    def __init__(self, env, num_agents=2, m=15, alpha=0.05, beta=0.2, delta=0.99, supervisor=False, sessions=1, log_frequency=10000):
 
         self.env = env
-        self.num_agents = num_agents
+        if supervisor:
+            self.num_agents = num_agents + 1
+            self.agents = [ 'agent_' + str(i) for i in range(num_agents)] + ['supervisor']
+        else:
+            self.num_agents = num_agents
+            self.agents = [ 'agent_' + str(i) for i in range(num_agents)]
         self.m = m
         self.alpha = alpha
         self.beta = beta
         self.delta = delta
+        self.supervisor = supervisor
         self.sessions = sessions
         self.log_frequency = log_frequency
-
-        self.agents = [ 'agent_' + str(i) for i in range(num_agents)]
 
     def train(self):
         '''Train to fill q_table'''
@@ -30,6 +34,8 @@ class Q_Learner():
         for i in range(self.sessions):    
 
             observation = self.env.reset()
+            # if self.supervisor:
+            #     supervisor_observation = observation.pop('supervisor') # Try giving current actions as observation to supervisor!
             observation = str(observation)
 
             loop_count = 0
@@ -44,10 +50,13 @@ class Q_Learner():
                 actions_dict = {}
                 for agent in range(self.num_agents):
                     if observation not in self.q_table[agent]:
-                        self.q_table[agent][observation] = [0] * self.m
+                        if self.agents[agent] == 'supervisor':
+                            self.q_table[agent][observation] = [0] * (self.num_agents - 1)
+                        else:
+                            self.q_table[agent][observation] = [0] * self.m
 
                     if random.uniform(0, 1) < epsilon:
-                        actions_dict[self.agents[agent]] = self.env.action_spaces['agent_' + str(agent)].sample()
+                        actions_dict[self.agents[agent]] = self.env.action_spaces[self.agents[agent]].sample()
                     else:
                         actions_dict[self.agents[agent]] = np.argmax(self.q_table[agent][observation])
 
@@ -60,8 +69,11 @@ class Q_Learner():
                 Q_maxes = [0] * self.num_agents
                 for agent in range(self.num_agents):
                     if next_observation not in self.q_table[agent]:
-                        self.q_table[agent][next_observation] = [0] * self.m
-                
+                        if self.agents[agent] == 'supervisor':
+                            self.q_table[agent][next_observation] = [0] * (self.num_agents - 1)
+                        else:
+                            self.q_table[agent][next_observation] = [0] * self.m
+
                     last_values[agent] = self.q_table[agent][observation][actions_dict[self.agents[agent]]]
                     Q_maxes[agent] = np.max(self.q_table[agent][next_observation])
                 

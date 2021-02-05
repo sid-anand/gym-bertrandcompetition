@@ -18,8 +18,8 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
-trainer_choice = 'DQN'
-supervisor = False # Supervisor for mitigation
+trainer_choice = 'QL'
+supervisor = True # Supervisor for mitigation
 
 # Parameters
 num_agents = 2
@@ -36,7 +36,7 @@ log_frequency = 50000
 
 # Performance and Testing
 num_gpus = 0
-overwrite_id = 2
+overwrite_id = 0
 len_eval_after_deviation = 20
 
 config = {
@@ -87,7 +87,7 @@ def eval_then_unload(observation):
 if trainer_choice not in ['QL', 'SARSA']:
 
     use_pickle = True
-    max_steps = 200000
+    max_steps = 150000
 
     if trainer_choice in ['DQN', 'PPO']:
         state_space = 'discrete'
@@ -134,7 +134,7 @@ if trainer_choice not in ['QL', 'SARSA']:
                 # Config for the Exploration class' constructor:
                 "initial_epsilon": 1.0,
                 "final_epsilon": 0.000001,
-                "epsilon_timesteps": 250000,  # Timesteps over which to anneal epsilon.
+                "epsilon_timesteps": 200000,  # Timesteps over which to anneal epsilon. Originally set to 250000.
             }
         trainer = DQNTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'PPO':
@@ -209,9 +209,9 @@ else:
     env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, supervisor=supervisor, use_pickle=use_pickle, path=path)
 
     if trainer_choice == 'QL':
-        trainer = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
+        trainer = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, supervisor=supervisor, sessions=sessions, log_frequency=log_frequency)
     elif trainer_choice == 'SARSA':
-        trainer = SARSA(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, sessions=sessions, log_frequency=log_frequency)
+        trainer = SARSA(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, supervisor=supervisor, sessions=sessions, log_frequency=log_frequency)
 
     trainer.train()
 
