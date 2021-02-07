@@ -26,7 +26,7 @@ class Q_Learner():
     def train(self):
         '''Train to fill q_table'''
 
-        self.q_table = [{}] * self.num_agents
+        self.q_table = [{} for _ in range(self.num_agents)]
 
         # For plotting metrics
         all_rewards = [ [] for _ in range(self.num_agents) ] # store the penalties per episode
@@ -36,7 +36,14 @@ class Q_Learner():
             observation = self.env.reset()
             # if self.supervisor:
             #     supervisor_observation = observation.pop('supervisor') # Try giving current actions as observation to supervisor!
-            observation = str(observation)
+            observation = str(observation['agent_0']) # Potentially make observation less long
+
+            for agent in range(self.num_agents):
+                if observation not in self.q_table[agent]:
+                    if self.agents[agent] == 'supervisor':
+                        self.q_table[agent][observation] = [0] * (self.num_agents - 1)
+                    else:
+                        self.q_table[agent][observation] = [0] * self.m
 
             loop_count = 0
             reward_list = []
@@ -49,12 +56,6 @@ class Q_Learner():
 
                 actions_dict = {}
                 for agent in range(self.num_agents):
-                    if observation not in self.q_table[agent]:
-                        if self.agents[agent] == 'supervisor':
-                            self.q_table[agent][observation] = [0] * (self.num_agents - 1)
-                        else:
-                            self.q_table[agent][observation] = [0] * self.m
-
                     if random.uniform(0, 1) < epsilon:
                         actions_dict[self.agents[agent]] = self.env.action_spaces[self.agents[agent]].sample()
                     else:
@@ -63,7 +64,7 @@ class Q_Learner():
                 next_observation, reward, done, info = self.env.step(actions_dict)
                 done = done['__all__']
 
-                next_observation = str(next_observation)
+                next_observation = str(next_observation['agent_0'])
 
                 last_values = [0] * self.num_agents
                 Q_maxes = [0] * self.num_agents

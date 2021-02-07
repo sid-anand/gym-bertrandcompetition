@@ -19,7 +19,7 @@ from ray.tune.logger import pretty_print
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
 trainer_choice = 'QL'
-supervisor = True # Supervisor for mitigation
+supervisor = False # Supervisor for mitigation
 
 # Parameters
 num_agents = 2
@@ -74,9 +74,6 @@ def eval_then_unload(observation):
             except EOFError:
                 break
 
-    for i in range(len(action_history_list)):
-        if len(action_history_list[i]) != 3:
-            print(i)
     action_history_array = np.array(action_history_list).transpose()
     for i in range(num_agents):
         env.action_history[env.agents[i]].extend(action_history_array[i].tolist())
@@ -87,7 +84,7 @@ def eval_then_unload(observation):
 if trainer_choice not in ['QL', 'SARSA']:
 
     use_pickle = True
-    max_steps = 150000
+    max_steps = 100000
 
     if trainer_choice in ['DQN', 'PPO']:
         state_space = 'discrete'
@@ -121,7 +118,10 @@ if trainer_choice not in ['QL', 'SARSA']:
     multiagent_dict['policy_mapping_fn'] = lambda agent_id: agent_id
     config['multiagent'] = multiagent_dict
 
-    savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_supervisor_' + str(supervisor) + '_for_' + str(sessions) + '_sessions.pkl'
+    if supervisor:
+        savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_supervisor_' + str(supervisor) + '_for_' + str(sessions) + '_sessions.pkl'
+    else:
+        savefile = './arrays/' + state_space + '_' + trainer_choice + '_with_' + str(num_agents) + '_agents_k_' + str(k) + '_for_' + str(sessions) + '_sessions.pkl'
 
     register_env('Bertrand', lambda env_config: env)
     ray.init(num_cpus=4)
@@ -134,7 +134,7 @@ if trainer_choice not in ['QL', 'SARSA']:
                 # Config for the Exploration class' constructor:
                 "initial_epsilon": 1.0,
                 "final_epsilon": 0.000001,
-                "epsilon_timesteps": 200000,  # Timesteps over which to anneal epsilon. Originally set to 250000.
+                "epsilon_timesteps": 100000,  # Timesteps over which to anneal epsilon. Originally set to 250000.
             }
         trainer = DQNTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'PPO':
@@ -155,7 +155,7 @@ if trainer_choice not in ['QL', 'SARSA']:
         from ray.rllib.agents.ddpg import DDPGTrainer
         trainer = DDPGTrainer(config = config, env = 'Bertrand')
 
-    if use_pickle and os.path.isfile(savefile):
+    if os.path.isfile(savefile):
         os.remove(savefile)
 
     analysis = tune.run(
@@ -171,34 +171,47 @@ if trainer_choice not in ['QL', 'SARSA']:
 
     trainer.restore(analysis.best_checkpoint)
 
-    if use_pickle:
-        action_history_list = []
-        with open(savefile, 'rb') as f:
-            while True:
-                try:
-                    action_history_list.append(pickle.load(f).tolist())
-                except EOFError:
-                    break
+    # s = "Epoch {:3d} / Reward Min: {:6.2f} / Mean: {:6.2f} / Max: {:6.2f} / Steps {:6.2f}"
 
-        action_history_array = np.array(action_history_list).transpose()
-        for i in range(num_agents):
-            env.action_history[env.agents[i]] = action_history_array[i].tolist()
+    # for i in range(sessions):
+    #     result = trainer.train()
 
-        env.plot(overwrite_id=overwrite_id)
-        env.plot_last(last_n=1000, overwrite_id=overwrite_id)
-        env.plot_last(last_n=100, overwrite_id=overwrite_id)
+    #     print(s.format(
+    #     i + 1,
+    #     result["episode_reward_min"],
+    #     result["episode_reward_mean"],
+    #     result["episode_reward_max"],
+    #     result["episode_len_mean"]))
 
-        # Deviate downwards
-        observation = env.deviate(direction='down')
-        eval_then_unload(observation)
-        env.plot_last(last_n=30, title_str='_down_deviation', overwrite_id=overwrite_id)
+    #     checkpoint = trainer.save()
+    #     print('Checkpoint: ', checkpoint)
 
-        # Deviate upwards
-        observation = env.deviate(direction='up')
-        eval_then_unload(observation)
-        env.plot_last(last_n=30, title_str='_up_deviation', overwrite_id=overwrite_id)
+    action_history_list = []
+    with open(savefile, 'rb') as f:
+        while True:
+            try:
+                action_history_list.append(pickle.load(f).tolist())
+            except EOFError:
+                break
 
-        os.remove(savefile)
+    action_history_array = np.array(action_history_list).transpose()
+    for i in range(num_agents):
+        env.action_history[env.agents[i]] = action_history_array[i].tolist()
+
+    env.plot(overwrite_id=overwrite_id)
+    env.plot_last(last_n=100, overwrite_id=overwrite_id)
+
+    # Deviate downwards
+    observation = env.deviate(direction='down')
+    eval_then_unload(observation)
+    env.plot_last(last_n=30, title_str='_down_deviation', overwrite_id=overwrite_id)
+
+    # Deviate upwards
+    observation = env.deviate(direction='up')
+    eval_then_unload(observation)
+    env.plot_last(last_n=30, title_str='_up_deviation', overwrite_id=overwrite_id)
+
+    os.remove(savefile)
 
 else:
 
@@ -219,7 +232,6 @@ else:
         pickle.dump(trainer.q_table, f)
 
     env.plot(overwrite_id=overwrite_id)
-    env.plot_last(last_n=1000, overwrite_id=overwrite_id)
     env.plot_last(last_n=100, overwrite_id=overwrite_id)
 
     observation = env.deviate(direction='down')

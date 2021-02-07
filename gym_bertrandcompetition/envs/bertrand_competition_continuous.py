@@ -57,19 +57,16 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         print('Nash Price:', self.pN)
 
         # Monopoly Equilibrium Price
-        def monopoly_func(p):
-
-            # Below is for finding each agent's monopoly price (currently unnecessary)
-            # function_list = []
-            # for i in range(num_agents):
-            #     function_list.append(-(p[i] - c_i) * self.demand(self.a, p, self.mu, i))
-            # return function_list
-            
+        def monopoly_func(p):   
             return -(p[0] - c_i) * self.demand(self.a, p, self.mu, 0)
 
         monopoly_sol = optimize.minimize(monopoly_func, 0)
         self.pM = monopoly_sol.x[0]
         print('Monopoly Price:', self.pM)
+
+        self.low_price = self.pN - xi * (self.pM - self.pN)
+        self.high_price = self.pM + xi * (self.pM - self.pN)
+        act_space = Box(np.array([self.low_price]), np.array([self.high_price]))
 
         # MultiAgentEnv Action and Observation Space
         self.agents = ['agent_' + str(i) for i in range(num_agents)]
@@ -85,10 +82,6 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
             numeric_high = np.array([self.high_price] * num_agents)
             obs_space = Box(self.numeric_low, numeric_high)
 
-        self.low_price = self.pN - xi * (self.pM - self.pN)
-        self.high_price = self.pM + xi * (self.pM - self.pN)
-        act_space = Box(np.array([self.low_price]), np.array([self.high_price]))
-        
         for agent in self.agents:
             self.observation_spaces[agent] = obs_space
             self.action_spaces[agent] = act_space
@@ -165,23 +158,29 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         self.prices = actions_list[:self.num_agents]
 
         if self.supervisor:
-            total_demand = 0
-            proportion = 3/4
+            # total_demand = 0
+            # proportion = 3/4
+            # for i in range(self.num_agents):
+            #     total_demand += self.demand(self.a, self.prices, self.mu, i)
+            # for i in range(self.num_agents):
+            #     if i == actions_list[-1]:
+            #         demand = total_demand * proportion
+            #     else:
+            #         demand = total_demand * (1 - proportion)
+            #     reward[i] = (self.prices[i] - self.c_i) * demand
+            proportion_boost = 1.25
             for i in range(self.num_agents):
-                total_demand += self.demand(self.a, self.prices, self.mu, i)
-            for i in range(self.num_agents):
-                if i == actions_list[-1]:
-                    demand = total_demand * proportion
+                if i == actions_idx[-1]:
+                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * proportion_boost)
                 else:
-                    demand = total_demand * (1 - proportion)
-                reward[i] = (self.prices[i] - self.c_i) * demand
+                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * (2 - proportion_boost))
         else:
             for i in range(self.num_agents):
                 reward[i] = (self.prices[i] - self.c_i) * self.demand(self.a, self.prices, self.mu, i)
 
         reward = dict(zip(self.agents, reward))
         done = {'__all__': self.current_step == self.max_steps}
-        info = dict(zip(self.agents, [{}]*self.num_agents))
+        info = dict(zip(self.agents, [{} for _ in range(self.num_agents)]))
 
         if self.supervisor:
             if self.k > 0: 

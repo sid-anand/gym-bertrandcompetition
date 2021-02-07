@@ -26,12 +26,6 @@ class SARSA():
     def choose_action(self, observation, epsilon):
         actions_dict = {}
         for agent in range(self.num_agents):
-            if observation not in self.q_table[agent]:
-                if self.agents[agent] == 'supervisor':
-                    self.q_table[agent][observation] = [0] * (self.num_agents - 1)
-                else:
-                    self.q_table[agent][observation] = [0] * self.m
-
             if random.uniform(0, 1) < epsilon:
                 actions_dict[self.agents[agent]] = self.env.action_spaces[self.agents[agent]].sample()
             else:
@@ -42,7 +36,7 @@ class SARSA():
     def train(self):
         '''Train to fill q_table'''
 
-        self.q_table = [{}] * self.num_agents
+        self.q_table = [{} for _ in range(self.num_agents)]
 
         # For plotting metrics
         all_rewards = [ [] for _ in range(self.num_agents) ] # store the penalties per episode
@@ -50,9 +44,16 @@ class SARSA():
         for i in range(self.sessions):    
 
             observation = self.env.reset()
-            observation = str(observation)
+            observation = str(observation['agent_0'])
             self.policy = [0] * self.num_agents
             actions_dict = self.choose_action(observation, 1.0)
+
+            for agent in range(self.agents):
+                if observation not in self.q_table[agent]:
+                    if self.agents[agent] == 'supervisor':
+                        self.q_table[agent][observation] = [0] * (self.num_agents - 1)
+                    else:
+                        self.q_table[agent][observation] = [0] * self.m
 
             loop_count = 0
             reward_list = []
@@ -66,7 +67,7 @@ class SARSA():
                 next_observation, reward, done, info = self.env.step(actions_dict)
                 done = done['__all__']
 
-                next_observation = str(next_observation)
+                next_observation = str(next_observation['agent_0'])
 
                 actions_dict2 = self.choose_action(next_observation, epsilon)
 
