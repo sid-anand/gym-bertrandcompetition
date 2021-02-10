@@ -18,8 +18,11 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
-trainer_choice = 'QL'
-supervisor = False # Supervisor for mitigation
+trainer_choice = 'A3C'
+
+# Collusion Mitigation Mechanism
+supervisor = False
+proportion_boost = 1.5
 
 # Parameters
 num_agents = 2
@@ -35,8 +38,8 @@ delta = 0.95
 log_frequency = 50000
 
 # Performance and Testing
-num_gpus = 0
 overwrite_id = 0
+num_gpus = 0
 len_eval_after_deviation = 20
 
 config = {
@@ -50,7 +53,7 @@ config = {
     'batch_mode': 'complete_episodes',
     # Change 'explore' to True to False to evaluate (https://docs.ray.io/en/master/rllib-training.html)
     # 'monitor': True,
-    # Change 'log_level' to 'INFO' for more information
+    'log_level': 'WARN', # Change 'log_level' to 'INFO' for more information
     'gamma': delta
 }
 
@@ -84,14 +87,36 @@ def eval_then_unload(observation):
 if trainer_choice not in ['QL', 'SARSA']:
 
     use_pickle = True
-    max_steps = 100000
+    max_steps = 50000
 
-    if trainer_choice in ['DQN', 'PPO']:
+    if trainer_choice in ['DQN', 'A3C']:
         state_space = 'discrete'
-        env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, supervisor=supervisor, use_pickle=use_pickle, path=path)
+        env = BertrandCompetitionDiscreteEnv(
+            num_agents=num_agents, 
+            k=k, 
+            m=m, 
+            max_steps=max_steps, 
+            sessions=sessions, 
+            convergence=convergence, 
+            trainer_choice=trainer_choice, 
+            supervisor=supervisor, 
+            proportion_boost=proportion_boost, 
+            use_pickle=use_pickle, 
+            path=path
+        )
     else:
         state_space = 'continuous'
-        env = BertrandCompetitionContinuousEnv(num_agents=num_agents, k=k, max_steps=max_steps, sessions=sessions, trainer_choice=trainer_choice, supervisor=supervisor, use_pickle=use_pickle, path=path)
+        env = BertrandCompetitionContinuousEnv(
+            num_agents=num_agents, 
+            k=k, 
+            max_steps=max_steps, 
+            sessions=sessions, 
+            trainer_choice=trainer_choice, 
+            supervisor=supervisor, 
+            proportion_boost=proportion_boost, 
+            use_pickle=use_pickle, 
+            path=path
+        )
 
     multiagent_dict = dict()
     multiagent_policies = dict()
@@ -134,14 +159,15 @@ if trainer_choice not in ['QL', 'SARSA']:
                 # Config for the Exploration class' constructor:
                 "initial_epsilon": 1.0,
                 "final_epsilon": 0.000001,
-                "epsilon_timesteps": 100000,  # Timesteps over which to anneal epsilon. Originally set to 250000.
+                "epsilon_timesteps": 200000,  # Timesteps over which to anneal epsilon. Originally set to 250000.
             }
         trainer = DQNTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'PPO':
         from ray.rllib.agents.ppo import PPOTrainer
-        config['num_workers'] = num_agents
+        config['num_workers'] = 1
         trainer = PPOTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'A3C':
+        config['num_workers'] = 1
         from ray.rllib.agents.a3c import A3CTrainer
         trainer = A3CTrainer(config = config, env = 'Bertrand')
     elif trainer_choice == 'A2C':
@@ -219,12 +245,42 @@ else:
     state_space = 'discrete'
     use_pickle = False
 
-    env = BertrandCompetitionDiscreteEnv(num_agents=num_agents, k=k, m=m, max_steps=max_steps, sessions=sessions, convergence=convergence, trainer_choice=trainer_choice, supervisor=supervisor, use_pickle=use_pickle, path=path)
+    env = BertrandCompetitionDiscreteEnv(
+        num_agents=num_agents, 
+        k=k, 
+        m=m, 
+        max_steps=max_steps, 
+        sessions=sessions, 
+        convergence=convergence, 
+        trainer_choice=trainer_choice, 
+        supervisor=supervisor, 
+        proportion_boost=proportion_boost, 
+        use_pickle=use_pickle, 
+        path=path)
 
     if trainer_choice == 'QL':
-        trainer = Q_Learner(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, supervisor=supervisor, sessions=sessions, log_frequency=log_frequency)
+        trainer = Q_Learner(
+            env=env, 
+            num_agents=num_agents, 
+            m=m, 
+            alpha=alpha, 
+            beta=beta, 
+            delta=delta, 
+            supervisor=supervisor, 
+            sessions=sessions, 
+            log_frequency=log_frequency
+        )
     elif trainer_choice == 'SARSA':
-        trainer = SARSA(env, num_agents=num_agents, m=m, alpha=alpha, beta=beta, delta=delta, supervisor=supervisor, sessions=sessions, log_frequency=log_frequency)
+        trainer = SARSA(env=env, 
+            num_agents=num_agents, 
+            m=m, 
+            alpha=alpha, 
+            beta=beta, 
+            delta=delta, 
+            supervisor=supervisor, 
+            sessions=sessions, 
+            log_frequency=log_frequency
+        )
 
     trainer.train()
 

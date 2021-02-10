@@ -15,7 +15,7 @@ import warnings
 class BertrandCompetitionContinuousEnv(MultiAgentEnv):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, xi = 0.1, k = 1, max_steps=200, sessions=1, trainer_choice='A3C', supervisor=False, use_pickle=False, path=''):
+    def __init__(self, num_agents = 2, c_i = 1, a_minus_c_i = 1, a_0 = 0, mu = 0.25, delta = 0.95, xi = 0.1, k = 1, max_steps=200, sessions=1, trainer_choice='A3C', supervisor=False, proportion_boost=1.0, use_pickle=False, path=''):
 
         super(BertrandCompetitionContinuousEnv, self).__init__()
         self.num_agents = num_agents
@@ -113,6 +113,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         self.action_history = {}
         self.use_pickle = use_pickle
         self.supervisor = supervisor
+        self.proportion_boost = proportion_boost
         self.path = path
 
         if supervisor:
@@ -159,21 +160,16 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
 
         if self.supervisor:
             # total_demand = 0
-            # proportion = 3/4
             # for i in range(self.num_agents):
             #     total_demand += self.demand(self.a, self.prices, self.mu, i)
-            # for i in range(self.num_agents):
-            #     if i == actions_list[-1]:
-            #         demand = total_demand * proportion
-            #     else:
-            #         demand = total_demand * (1 - proportion)
-            #     reward[i] = (self.prices[i] - self.c_i) * demand
-            proportion_boost = 1.25
             for i in range(self.num_agents):
-                if i == actions_idx[-1]:
-                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * proportion_boost)
+                if i == actions_list[-1]:
+                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost)
+                    # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) + self.proportion_boost
                 else:
-                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * (2 - proportion_boost))
+                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * (2 - self.proportion_boost))
+                    # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) - self.proportion_boost
+                # reward[i] = (self.prices[i] - self.c_i) * (total_demand * demand_proportion)
         else:
             for i in range(self.num_agents):
                 reward[i] = (self.prices[i] - self.c_i) * self.demand(self.a, self.prices, self.mu, i)
@@ -253,7 +249,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
-        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' Supervisor ' + str(self.supervisor) + ' for ' + str(self.sessions) + ' Sessions')
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' Supervisor ' + str(self.supervisor) + ' ' + str(self.proportion_boost) + ' for ' + str(self.sessions) + ' Sessions')
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile + '_' + str(overwrite_id))
         plt.clf()
@@ -267,7 +263,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, last_n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
-        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' Supervisor ' + str(self.supervisor) + ' for ' + str(self.sessions) + ' Sessions, Last Steps ' + str(last_n) + title_str)
+        plt.title(self.trainer_choice + ' with ' + str(self.num_agents) + ' agents and k=' + str(self.k) + ' Supervisor ' + str(self.supervisor) + ' ' + str(self.proportion_boost) + ' for ' + str(self.sessions) + ' Sessions, Last Steps ' + str(last_n) + title_str)
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile + title_str + '_last_steps_' + str(last_n) + '_' + str(overwrite_id))
         plt.clf()

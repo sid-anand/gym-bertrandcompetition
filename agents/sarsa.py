@@ -48,7 +48,7 @@ class SARSA():
             self.policy = [0] * self.num_agents
             actions_dict = self.choose_action(observation, 1.0)
 
-            for agent in range(self.agents):
+            for agent in range(self.num_agents):
                 if observation not in self.q_table[agent]:
                     if self.agents[agent] == 'supervisor':
                         self.q_table[agent][observation] = [0] * (self.num_agents - 1)
