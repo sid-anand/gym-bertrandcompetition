@@ -206,6 +206,19 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
 
         return observation, reward, done, info
 
+    def one_step(self):
+        step_actions_dict = {}
+
+        for agent in self.agents:
+            step_actions_dict[agent] = self.action_history[agent][-1]
+
+        if self.supervisor:
+            step_actions_dict['supervisor'] = self.action_history['supervisor'][-1]
+
+        observation, _, _, _ = self.step(step_actions_dict)
+
+        return observation
+
     def deviate(self, direction='down'):
         deviate_actions_dict = {}
 
@@ -268,11 +281,14 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.savefig('./figures/' + self.savefile + '_' + str(overwrite_id))
         plt.clf()
 
-    def plot_last(self, last_n=1000, title_str = '', overwrite_id=0):
+    def plot_last(self, last_n=1000, window=None, title_str = '', overwrite_id=0):
         '''Plot action history.'''
         x = np.arange(last_n)
         for agent in self.agents:
             plt.plot(x, self.action_history[agent][-last_n:], alpha=0.75, label=agent)
+        if window is not None:
+            for agent in self.agents:
+                plt.plot(x, pd.Series(self.action_history[agent][-last_n:]).rolling(window=window).mean(), alpha=0.5, label=agent + ' MA')
         plt.plot(x, np.repeat(self.pM, last_n), 'r--', label='Monopoly')
         plt.plot(x, np.repeat(self.pN, last_n), 'b--', label='Nash')
         plt.xlabel('Steps')

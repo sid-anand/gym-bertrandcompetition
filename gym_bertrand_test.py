@@ -58,8 +58,8 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
-trainer_choice = 'PPO'
-second_trainer_choice = 'DDPG' # leave as empty string ('') for none
+trainer_choice = 'DDPG'
+second_trainer_choice = '' # leave as empty string ('') for none
 
 # Collusion Mitigation Mechanism
 supervisor = False
@@ -81,9 +81,10 @@ log_frequency = 50000
 # Performance and Testing
 overwrite_id = 1
 num_gpus = 0
+len_eval_after_training = 1000
 len_eval_after_deviation = 20
 
-if trainer_choice in ['QL', 'SARSA', 'A3C', 'DQN']:
+if trainer_choice in ['QL', 'SARSA', 'DQN', 'PPO']:
     state_space = 'discrete'
 else:
     state_space = 'continuous'
@@ -112,8 +113,8 @@ config = {
 
 path = os.path.abspath(os.getcwd())
 
-def eval_then_unload(observation):
-    for i in range(len_eval_after_deviation):
+def eval_then_unload(observation, len_eval):
+    for i in range(len_eval):
         # action = trainer.compute_action(observation)
         action = {}
         for agent_id, agent_obs in observation.items():
@@ -139,7 +140,7 @@ def eval_then_unload(observation):
 if trainer_choice not in ['QL', 'SARSA']:
 
     use_pickle = True
-    max_steps = 10000
+    max_steps = 50000
 
     pklfile = './arrays/' + savefile + '.pkl'
 
@@ -213,7 +214,7 @@ if trainer_choice not in ['QL', 'SARSA']:
                     # Config for the Exploration class' constructor:
                     "initial_epsilon": 1.0,
                     "final_epsilon": 0.000001,
-                    "epsilon_timesteps": 100000,  # Timesteps over which to anneal epsilon. Originally set to 250000.
+                    "epsilon_timesteps": 140000,  # Timesteps over which to anneal epsilon. Originally set to 250000.
                 }
             trainer = DQNTrainer(config = config, env = 'Bertrand')
         elif trainer_choice == 'PPO':
@@ -286,7 +287,6 @@ if trainer_choice not in ['QL', 'SARSA']:
         if 'PPO' in trainer_choice_list and 'DQN' in trainer_choice_list:
             custom_training_workflow = custom_training_workflow_ppo_dqn
         elif 'PPO' in trainer_choice_list and 'A3C' in trainer_choice_list:
-            # print('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
             custom_training_workflow = custom_training_workflow_ppo_a3c
         elif 'DQN' in trainer_choice_list and 'A3C' in trainer_choice_list:
             custom_training_workflow = custom_training_workflow_dqn_a3c
@@ -330,17 +330,22 @@ if trainer_choice not in ['QL', 'SARSA']:
         env.action_history[env.agents[i]] = action_history_array[i].tolist()
 
     env.plot(overwrite_id=overwrite_id)
-    env.plot_last(last_n=100, overwrite_id=overwrite_id)
+    env.plot_last(last_n=1000, window=100, title_str='_train', overwrite_id=overwrite_id)
 
     if not second_trainer_choice:
+        # Eval
+        observation = env.one_step()
+        eval_then_unload(observation=observation, len_eval=len_eval_after_training)
+        env.plot_last(last_n=len_eval_after_training, window=100, overwrite_id=overwrite_id)
+
         # Deviate downwards
         observation = env.deviate(direction='down')
-        eval_then_unload(observation)
+        eval_then_unload(observation=observation, len_eval=len_eval_after_deviation)
         env.plot_last(last_n=30, title_str='_down_deviation', overwrite_id=overwrite_id)
 
         # Deviate upwards
         observation = env.deviate(direction='up')
-        eval_then_unload(observation)
+        eval_then_unload(observation=observation, len_eval=len_eval_after_deviation)
         env.plot_last(last_n=30, title_str='_up_deviation', overwrite_id=overwrite_id)
 
     os.remove(pklfile)
@@ -395,7 +400,11 @@ else:
         pickle.dump(trainer.q_table, f)
 
     env.plot(overwrite_id=overwrite_id)
-    env.plot_last(last_n=100, overwrite_id=overwrite_id)
+    env.plot_last(last_n=100, title_str='_train', overwrite_id=overwrite_id)
+
+    # observation = env.one_step()
+    # trainer.eval(observation, n=len_eval_after_training)
+    # env.plot_last(last_n=len_eval_after_training, window=100, overwrite_id=overwrite_id)
 
     observation = env.deviate(direction='down')
     trainer.eval(observation, n=len_eval_after_deviation)
