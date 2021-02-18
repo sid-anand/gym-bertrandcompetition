@@ -79,7 +79,7 @@ delta = 0.95
 log_frequency = 50000
 
 # Performance and Testing
-overwrite_id = 1
+overwrite_id = 0
 num_gpus = 0
 len_eval_after_training = 1000
 len_eval_after_deviation = 20
