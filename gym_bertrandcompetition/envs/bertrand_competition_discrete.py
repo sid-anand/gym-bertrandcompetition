@@ -222,10 +222,10 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # print(actions_idx)
 
         # 29
-        temp_actions_idx = [0, 0]
-        temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
-        temp_actions_idx[1 - np.argmax(actions_idx)] = np.min(actions_idx) // 3
-        actions_idx = np.array(temp_actions_idx)
+        # temp_actions_idx = [0, 0]
+        # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
+        # temp_actions_idx[1 - np.argmax(actions_idx)] = np.min(actions_idx) // 3
+        # actions_idx = np.array(temp_actions_idx)
         # print(actions_idx)
 
         # Extra
@@ -375,6 +375,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
+        plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
         plt.title(self.savefile.replace('_', ' ').title())
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile + '_' + str(overwrite_id))
@@ -392,6 +393,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.plot(x, np.repeat(self.pN, last_n), 'b--', label='Nash')
         plt.xlabel('Steps')
         plt.ylabel('Price')
+        plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
         plt.title((self.savefile + title_str + ' Eval ' + str(last_n) ).replace('_', ' ').title())
         plt.legend()
         plt.savefig('./figures/' + self.savefile + title_str + '_eval_' + str(last_n) + '_' + str(overwrite_id))
