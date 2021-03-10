@@ -53,16 +53,18 @@ class Q_Learner():
             
             while not done:
 
-                # epsilon = np.exp(-1 * self.beta * i)
                 epsilon = np.exp(-1 * self.beta * loop_count)
 
                 actions_dict = {}
+
+                # Choose Action
                 for agent in range(self.num_agents):
                     if random.uniform(0, 1) < epsilon:
                         actions_dict[self.agents[agent]] = self.env.action_spaces[self.agents[agent]].sample()
                     else:
                         actions_dict[self.agents[agent]] = np.argmax(self.q_table[agent][observation])
 
+                # Step
                 next_observation, reward, done, info = self.env.step(actions_dict)
                 done = done['__all__']
                 next_observation = str(next_observation['agent_0'])
@@ -129,7 +131,7 @@ class Q_Learner():
                 all_rewards[agent].append(mean_reward)
 
     def eval(self, observation, n=20):
-        '''Eval q_table'''
+        '''Eval q_table.'''
 
         for i in range(n):
 

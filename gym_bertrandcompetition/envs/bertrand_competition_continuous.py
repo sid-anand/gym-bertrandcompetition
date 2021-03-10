@@ -252,7 +252,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
                     reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost)
                     # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) + self.proportion_boost
                 else:
-                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * (2 - self.proportion_boost))
+                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * ((2 - self.proportion_boost) / (self.num_agents - 1)))
                     # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) - self.proportion_boost
                 # reward[i] = (self.prices[i] - self.c_i) * (total_demand * demand_proportion)
         else:
@@ -349,7 +349,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.xlabel('Steps')
         plt.ylabel('Price')
         plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-        plt.title(self.savefile.replace('_', ' ').title())
+        # plt.title(self.savefile.replace('_', ' ').title())
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile + '_' + str(overwrite_id))
         plt.clf()
@@ -367,7 +367,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         plt.xlabel('Steps')
         plt.ylabel('Price')
         plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-        plt.title((self.savefile + title_str + ' Eval ' + str(last_n)).replace('_', ' ').title())
+        # plt.title((self.savefile + title_str + ' Eval ' + str(last_n)).replace('_', ' ').title())
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile + title_str + '_eval_' + str(last_n) + '_' + str(overwrite_id))
         plt.clf()

@@ -81,6 +81,22 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.pN = nash_sol.x[0]
         print('Nash Price:', self.pN)
 
+        # # Finding Nash Price by iteration
+        # # Make sure this tries all possibilities
+        # price_range = np.arange(0, 2.5, 0.01)
+        # nash_temp = 0
+        # for i in price_range:
+        #     p = [i] * num_agents
+        #     first_player_profit = (i - c_i) * self.demand(self.a, p, self.mu, 0)
+        #     new_profit = []
+        #     for j in price_range:
+        #         p[0] = j
+        #         new_profit.append((j - c_i) * self.demand(self.a, p, self.mu, 0))
+        #     if first_player_profit >= np.max(new_profit):
+        #         nash_temp = i
+        # self.pN = nash_temp
+        # print('Nash Price:', self.pN)
+
         # Monopoly Equilibrium Price
         def monopoly_func(p):
             return -(p[0] - c_i) * self.demand(self.a, p, self.mu, 0)
@@ -88,6 +104,16 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         monopoly_sol = optimize.minimize(monopoly_func, 0)
         self.pM = monopoly_sol.x[0]
         print('Monopoly Price:', self.pM)
+
+        # # Finding Monopoly Price by iteration
+        # # Make sure this tries all possibilities
+        # price_range = np.arange(0, 2.5, 0.01)
+        # monopoly_profit = []
+        # for i in price_range:
+        #     p = [i] * num_agents
+        #     monopoly_profit.append((i - c_i) * self.demand(self.a, p, self.mu, 0) * num_agents)
+        # self.pM = price_range[np.argmax(monopoly_profit)]
+        # print('Monopoly Price:', self.pM)
 
         # MultiAgentEnv Action and Observation Space
         self.agents = ['agent_' + str(i) for i in range(num_agents)]
@@ -158,7 +184,6 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         actions_idx = np.array(list(actions_dict.values())).flatten()
         # print(actions_idx)
 
-        # 20s
         # 21 both want to charge higher price to "win", but may be better off both pricing low
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
@@ -269,7 +294,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
                     reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost)
                     # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) + self.proportion_boost
                 else:
-                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * (2 - self.proportion_boost))
+                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * ((2 - self.proportion_boost) / (self.num_agents - 1)))
                     # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) - self.proportion_boost
                 # reward[i] = (self.prices[i] - self.c_i) * (total_demand * demand_proportion)
         else:
@@ -376,7 +401,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.xlabel('Steps')
         plt.ylabel('Price')
         plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-        plt.title(self.savefile.replace('_', ' ').title())
+        # plt.title(self.savefile.replace('_', ' ').title())
         plt.legend(loc='upper left')
         plt.savefig('./figures/' + self.savefile + '_' + str(overwrite_id))
         plt.clf()
@@ -394,7 +419,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         plt.xlabel('Steps')
         plt.ylabel('Price')
         plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
-        plt.title((self.savefile + title_str + ' Eval ' + str(last_n) ).replace('_', ' ').title())
+        # plt.title((self.savefile + title_str + ' Eval ' + str(last_n) ).replace('_', ' ').title())
         plt.legend()
         plt.savefig('./figures/' + self.savefile + title_str + '_eval_' + str(last_n) + '_' + str(overwrite_id))
         plt.clf()

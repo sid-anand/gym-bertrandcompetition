@@ -58,8 +58,8 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
-trainer_choice = 'QL'
-second_trainer_choice = '' # leave as empty string ('') for none
+trainer_choice = 'PPO'
+second_trainer_choice = 'DQN' # leave as empty string ('') for none
 
 # Collusion Mitigation Mechanism
 supervisor = False
@@ -73,10 +73,11 @@ convergence = 100000
 sessions = 1
 
 # Hyperparameters
-alpha = 0.15 # Change these to test Calvano results
-beta = 0.00001 # Change these to test Calvano results
+alpha = 0.1 # Change these to test Calvano results
+beta = 0.000005 # Change these to test Calvano results
 delta = 0.95
 log_frequency = 50000
+dqn_epsilon_timesteps = 75000
 
 # Performance and Testing
 overwrite_id = 0
@@ -89,12 +90,17 @@ if trainer_choice in ['QL', 'SARSA', 'DQN', 'PPO']:
 else:
     state_space = 'continuous'
 
+# Savefile
 savefile = state_space + '_' + trainer_choice
 if second_trainer_choice:
     savefile += '_' + second_trainer_choice
 savefile += '_' + str(num_agents) + '_agents_k_' + str(k)
 if supervisor:
     savefile += '_supervisor_' + str(supervisor) + '_' + str(proportion_boost).replace('.', '_')
+if trainer_choice in ['QL', 'SARSA']:
+    savefile += '_alpha_' + str(alpha).replace('.', '_') + '_beta_' + str(beta).replace('.', '_')
+elif trainer_choice == 'DQN' or second_trainer_choice == 'DQN':
+    savefile += '_epstep_' + str(dqn_epsilon_timesteps)
 
 config = {
     'env_config': {
@@ -114,6 +120,7 @@ config = {
 path = os.path.abspath(os.getcwd())
 
 def eval_then_unload(observation, len_eval):
+    '''Used to compute actions for certain observations and unload the results that are automatically pickled.'''
     for i in range(len_eval):
         # action = trainer.compute_action(observation)
         action = {}
@@ -136,11 +143,14 @@ def eval_then_unload(observation, len_eval):
         env.action_history[env.agents[i]].extend(action_history_array[i].tolist())
 
 
-
 if trainer_choice not in ['QL', 'SARSA']:
+    # RLLib Algorithms
 
     use_pickle = True
-    max_steps = 50000
+    if trainer_choice == 'DQN' or second_trainer_choice == 'DQN':
+        max_steps = dqn_epsilon_timesteps
+    else:
+        max_steps = 50000
 
     pklfile = './arrays/' + savefile + '.pkl'
 
@@ -177,6 +187,7 @@ if trainer_choice not in ['QL', 'SARSA']:
         )
 
     if not second_trainer_choice:
+        # Single algorithm training
 
         multiagent_dict = dict()
         multiagent_policies = dict()
@@ -214,7 +225,7 @@ if trainer_choice not in ['QL', 'SARSA']:
                     # Config for the Exploration class' constructor:
                     "initial_epsilon": 1.0,
                     "final_epsilon": 0.000001,
-                    "epsilon_timesteps": 140000,  # Timesteps over which to anneal epsilon. Originally set to 250000.
+                    "epsilon_timesteps": dqn_epsilon_timesteps,  # Timesteps over which to anneal epsilon. Originally set to 250000.
                 }
             trainer = DQNTrainer(config = config, env = 'Bertrand')
         elif trainer_choice == 'PPO':
@@ -251,6 +262,8 @@ if trainer_choice not in ['QL', 'SARSA']:
 
         trainer.restore(checkpoint_path=analysis.best_checkpoint)
     else:
+        # Dual algorithm training
+
         register_env('Bertrand', lambda env_config: env)
         ray.init(num_cpus=4)
 
@@ -277,7 +290,6 @@ if trainer_choice not in ['QL', 'SARSA']:
         policies_to_train_list = [trainer_choice + '_policy', second_trainer_choice + '_policy']
 
         def policy_mapping_fn(agent_id):
-            # if agent_id % 2 == 0:
             if agent_id == 'agent_0':
                 return trainer_choice + '_policy'
             else:
@@ -330,6 +342,7 @@ if trainer_choice not in ['QL', 'SARSA']:
         env.action_history[env.agents[i]] = action_history_array[i].tolist()
 
     env.plot(overwrite_id=overwrite_id)
+    env.plot_last(last_n=100, title_str='_train', overwrite_id=overwrite_id)
     env.plot_last(last_n=1000, window=100, title_str='_train', overwrite_id=overwrite_id)
 
     if not second_trainer_choice:
@@ -351,8 +364,13 @@ if trainer_choice not in ['QL', 'SARSA']:
     os.remove(pklfile)
 
 else:
+    # Algorithms from scratch
 
-    max_steps = 2000000
+    max_steps = 1500000
+    # for alpha = 0.15 beta = 0.00001 its 1500000, 
+    # for alpha = 0.1 beta = 0.000005 its 2500000, 
+    # for alpha = 0.075 beta = 0.0000025 its 4000000, nah
+    #for alpha = 0.05 beta = 0.0000025 its 4000000
     use_pickle = False
 
     env = BertrandCompetitionDiscreteEnv(
@@ -398,8 +416,8 @@ else:
 
     trainer.train()
 
-    with open('./q_tables/' + savefile + '.pkl', 'wb') as f:
-        pickle.dump(trainer.q_table, f)
+    # with open('./q_tables/' + savefile + '.pkl', 'wb') as f:
+    #     pickle.dump(trainer.q_table, f)
 
     env.plot(overwrite_id=overwrite_id)
     env.plot_last(last_n=100, title_str='_train', overwrite_id=overwrite_id)
@@ -415,12 +433,3 @@ else:
     observation = env.deviate(direction='up')
     trainer.eval(observation, n=len_eval_after_deviation)
     env.plot_last(last_n=25, title_str='_up_deviation', overwrite_id=overwrite_id)
-
-# if __name__ == '__main__':
-#     try:
-#         main()
-#     except KeyboardInterrupt:
-#         print('hello')
-#         filelist = [ f for f in os.listdir('./arrays') if f.endswith(".pkl") ]
-#         for f in filelist:
-#             os.remove(os.path.join(mydir, f))
