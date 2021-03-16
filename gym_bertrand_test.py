@@ -108,8 +108,8 @@ config = {
     },
     'env': 'Bertrand',
     'num_gpus': num_gpus,
-    'train_batch_size': 200,
-    'rollout_fragment_length': 200,
+    # 'train_batch_size': 200,
+    # 'rollout_fragment_length': 200,
     'batch_mode': 'complete_episodes',
     # Change 'explore' to True to False to evaluate (https://docs.ray.io/en/master/rllib-training.html)
     # 'monitor': True,
