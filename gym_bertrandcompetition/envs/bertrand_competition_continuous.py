@@ -106,7 +106,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
 
         if supervisor:
             self.observation_spaces['supervisor'] = obs_space
-            self.action_spaces['supervisor'] = Discrete(num_agents)
+            self.action_spaces['supervisor'] = Box(np.array([0]), np.array([self.num_agents]))
 
         # # MultiAgentEnv Action Space
         # self.low_price = self.pN - xi * (self.pM - self.pN)
@@ -152,6 +152,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         ''' MultiAgentEnv Step '''
 
         actions_list = np.array(list(actions_dict.values())).flatten()
+        # actions_list[0] = 1.8
         # print(actions_list)
 
         # 20s
@@ -248,7 +249,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
             # for i in range(self.num_agents):
             #     total_demand += self.demand(self.a, self.prices, self.mu, i)
             for i in range(self.num_agents):
-                if i == actions_list[-1]:
+                if i == np.floor(actions_list[-1]):
                     reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost)
                     # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) + self.proportion_boost
                 else:
@@ -269,7 +270,7 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
                 observation['supervisor'] = obs_agents
             else:
                 observation['supervisor'] = self.numeric_low
-            reward['supervisor'] = -np.sum(self.prices)
+            reward['supervisor'] = -np.prod(self.prices)
             info['supervisor'] = {}
 
         self.current_step += 1

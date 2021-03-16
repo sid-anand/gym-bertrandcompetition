@@ -61,6 +61,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # Index of Horizontal Differentiation
         self.mu = mu
 
+        ##############################################################
+
         # Nash Equilibrium Price
         def nash_func(p):
             ''' Derviative for demand function '''
@@ -97,6 +99,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # self.pN = nash_temp
         # print('Nash Price:', self.pN)
 
+        ############################################################################
+
         # Monopoly Equilibrium Price
         def monopoly_func(p):
             return -(p[0] - c_i) * self.demand(self.a, p, self.mu, 0)
@@ -114,6 +118,39 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         #     monopoly_profit.append((i - c_i) * self.demand(self.a, p, self.mu, 0) * num_agents)
         # self.pM = price_range[np.argmax(monopoly_profit)]
         # print('Monopoly Price:', self.pM)
+
+        ###############################################################################
+
+        # Nash and Monopoly Profit
+
+        # nash_profit = (self.pN - self.c_i) * self.demand(self.a, [self.pN, self.pN], self.mu, 0)
+        # monopoly_profit = (self.pM - self.c_i) * self.demand(self.a, [self.pM, self.pM], self.mu, 0)
+
+        # print('Nash Profit:', nash_profit)
+        # print('Monopoly Profit:', monopoly_profit)
+
+        # Profit Gain Plot
+
+        # val = []
+        # # x_range = np.linspace(self.pN-0.05, self.pM+0.05, 100)
+        # x_range = np.arange(1.45, 2.00, 0.05)
+
+        # for i in x_range:
+        #     profit = (i - self.c_i) * self.demand(self.a, [i, i], self.mu, 0)
+        #     profit_gain = (profit - nash_profit) / (monopoly_profit - nash_profit)
+        #     val.append(profit_gain)
+
+        #     print(i, profit, profit_gain)
+
+        # plt.plot(x_range, val, c='k')
+        # plt.axvline(x=self.pN, c='b', ls='--', label='Nash Price')
+        # plt.axvline(x=self.pM, c='r', ls='--', label='Monopoly Price')
+        # plt.xlabel('Price')
+        # plt.ylabel('Profit Gain Δ')
+        # plt.legend()
+        # plt.savefig('profit_gain')
+
+        ################################################################################
 
         # MultiAgentEnv Action and Observation Space
         self.agents = ['agent_' + str(i) for i in range(num_agents)]
@@ -182,6 +219,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         ''' MultiAgentEnv Step '''
 
         actions_idx = np.array(list(actions_dict.values())).flatten()
+        actions_idx[1] = 1
         # print(actions_idx)
 
         # 21 both want to charge higher price to "win", but may be better off both pricing low
@@ -327,6 +365,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.current_step += 1
 
         # print(observation, reward, done, info)
+        # print(actions_idx)
+        # print(reward)
 
         return observation, reward, done, info
 

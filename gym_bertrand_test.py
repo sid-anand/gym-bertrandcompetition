@@ -58,12 +58,12 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
-trainer_choice = 'PPO'
-second_trainer_choice = 'DQN' # leave as empty string ('') for none
+trainer_choice = 'A3C'
+second_trainer_choice = '' # leave as empty string ('') for none
 
 # Collusion Mitigation Mechanism
 supervisor = False
-proportion_boost = 1.5
+proportion_boost = 1.25
 
 # Parameters
 num_agents = 2
@@ -77,15 +77,15 @@ alpha = 0.1 # Change these to test Calvano results
 beta = 0.000005 # Change these to test Calvano results
 delta = 0.95
 log_frequency = 50000
-dqn_epsilon_timesteps = 75000
+dqn_epsilon_timesteps = 150000
 
 # Performance and Testing
-overwrite_id = 0
+overwrite_id = 1
 num_gpus = 0
 len_eval_after_training = 1000
 len_eval_after_deviation = 20
 
-if trainer_choice in ['QL', 'SARSA', 'DQN', 'PPO']:
+if trainer_choice in ['QL', 'SARSA', 'DQN', 'PPO', 'A2C']:
     state_space = 'discrete'
 else:
     state_space = 'continuous'
@@ -230,16 +230,17 @@ if trainer_choice not in ['QL', 'SARSA']:
             trainer = DQNTrainer(config = config, env = 'Bertrand')
         elif trainer_choice == 'PPO':
             from ray.rllib.agents.ppo import PPOTrainer
-            config['num_workers'] = 1
+            config['num_workers'] = 2
             # config['lr'] = 0.001
             trainer = PPOTrainer(config = config, env = 'Bertrand')
         elif trainer_choice == 'A3C':
             from ray.rllib.agents.a3c import A3CTrainer
-            config['num_workers'] = 1
+            config['num_workers'] = 2
             # config['lr'] = 0.01
             trainer = A3CTrainer(config = config, env = 'Bertrand')
         elif trainer_choice == 'A2C':
             from ray.rllib.agents.a3c import A2CTrainer
+            config['num_workers'] = 2
             trainer = A2CTrainer(config = config, env = 'Bertrand')
         elif trainer_choice == 'MADDPG':
             from ray.rllib.contrib.maddpg import MADDPGTrainer
@@ -366,7 +367,7 @@ if trainer_choice not in ['QL', 'SARSA']:
 else:
     # Algorithms from scratch
 
-    max_steps = 1500000
+    max_steps = 2500000
     # for alpha = 0.15 beta = 0.00001 its 1500000, 
     # for alpha = 0.1 beta = 0.000005 its 2500000, 
     # for alpha = 0.075 beta = 0.0000025 its 4000000, nah
