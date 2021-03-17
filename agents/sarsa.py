@@ -111,7 +111,7 @@ class SARSA():
 
         for i in range(n):
 
-            observation = str(observation)
+            observation = str(observation['agent_0'])
 
             actions_dict = {}
             for agent in range(self.num_agents):

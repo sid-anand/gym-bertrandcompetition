@@ -133,9 +133,9 @@ class Q_Learner():
     def eval(self, observation, n=20):
         '''Eval q_table.'''
 
-        for i in range(n):
+        observation = str(observation['agent_0'])
 
-            observation = str(observation)
+        for i in range(n):
 
             actions_dict = {}
             for agent in range(self.num_agents):
@@ -147,4 +147,4 @@ class Q_Learner():
             next_observation, reward, done, info = self.env.step(actions_dict)
             done = done['__all__']
 
-            observation = str(next_observation)
+            observation = str(next_observation['agent_0'])

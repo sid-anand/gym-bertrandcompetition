@@ -58,7 +58,7 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
-trainer_choice = 'A3C'
+trainer_choice = 'DQN'
 second_trainer_choice = '' # leave as empty string ('') for none
 
 # Collusion Mitigation Mechanism
@@ -108,8 +108,8 @@ config = {
     },
     'env': 'Bertrand',
     'num_gpus': num_gpus,
-    # 'train_batch_size': 200,
-    # 'rollout_fragment_length': 200,
+    'train_batch_size': 200,
+    'rollout_fragment_length': 200,
     'batch_mode': 'complete_episodes',
     # Change 'explore' to True to False to evaluate (https://docs.ray.io/en/master/rllib-training.html)
     # 'monitor': True,
@@ -148,7 +148,7 @@ if trainer_choice not in ['QL', 'SARSA']:
 
     use_pickle = True
     if trainer_choice == 'DQN' or second_trainer_choice == 'DQN':
-        max_steps = dqn_epsilon_timesteps
+        max_steps = dqn_epsilon_timesteps + 5000
     else:
         max_steps = 50000
 
@@ -227,28 +227,52 @@ if trainer_choice not in ['QL', 'SARSA']:
                     "final_epsilon": 0.000001,
                     "epsilon_timesteps": dqn_epsilon_timesteps,  # Timesteps over which to anneal epsilon. Originally set to 250000.
                 }
-            trainer = DQNTrainer(config = config, env = 'Bertrand')
+
+            # For eval afterward
+            config_copy = config.copy()
+            config_copy['explore'] = False
+            trainer = DQNTrainer(config = config_copy, env = 'Bertrand')
         elif trainer_choice == 'PPO':
             from ray.rllib.agents.ppo import PPOTrainer
             config['num_workers'] = 2
             # config['lr'] = 0.001
-            trainer = PPOTrainer(config = config, env = 'Bertrand')
+
+            # For eval afterward
+            config_copy = config.copy()
+            config_copy['explore'] = False
+            trainer = PPOTrainer(config = config_copy, env = 'Bertrand')
         elif trainer_choice == 'A3C':
             from ray.rllib.agents.a3c import A3CTrainer
             config['num_workers'] = 2
             # config['lr'] = 0.01
-            trainer = A3CTrainer(config = config, env = 'Bertrand')
+
+            # For eval afterward
+            config_copy = config.copy()
+            config_copy['explore'] = False
+            trainer = A3CTrainer(config = config_copy, env = 'Bertrand')
         elif trainer_choice == 'A2C':
             from ray.rllib.agents.a3c import A2CTrainer
             config['num_workers'] = 2
-            trainer = A2CTrainer(config = config, env = 'Bertrand')
+
+            # For eval afterward
+            config_copy = config.copy()
+            config_copy['explore'] = False
+            trainer = A2CTrainer(config = config_copy, env = 'Bertrand')
         elif trainer_choice == 'MADDPG':
             from ray.rllib.contrib.maddpg import MADDPGTrainer
             config['agent_id'] = 0
-            trainer = MADDPGTrainer(config = config, env = 'Bertrand')
+
+            # For eval afterward
+            config_copy = config.copy()
+            config_copy['explore'] = False
+            trainer = MADDPGTrainer(config = config_copy, env = 'Bertrand')
         elif trainer_choice == 'DDPG':
             from ray.rllib.agents.ddpg import DDPGTrainer
-            trainer = DDPGTrainer(config = config, env = 'Bertrand')
+
+            # For eval afterward
+            config_copy = config.copy()
+            config_copy['explore'] = False
+            trainer = DDPGTrainer(config = config_copy, env = 'Bertrand')
 
         analysis = tune.run(
             trainer_choice, 

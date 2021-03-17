@@ -219,7 +219,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         ''' MultiAgentEnv Step '''
 
         actions_idx = np.array(list(actions_dict.values())).flatten()
-        actions_idx[1] = 1
+        # actions_idx[1] = 1
         # print(actions_idx)
 
         # 21 both want to charge higher price to "win", but may be better off both pricing low
@@ -388,10 +388,10 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         if direction == 'down':
             # First agent deviates to lowest price
-            deviate_actions_dict[self.agents[0]] = 0
+            deviate_actions_dict[self.agents[0]] = 3
         elif direction == 'up':
             # First agent deviates to highest price
-            deviate_actions_dict[self.agents[0]] = self.m - 1
+            deviate_actions_dict[self.agents[0]] = self.m - 3
 
         for agent in range(1, self.num_agents):
             # All other agents remain at previous price (large assumption)
