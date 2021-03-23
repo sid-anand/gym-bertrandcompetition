@@ -58,7 +58,7 @@ from ray.tune.logger import pretty_print
 # CHANGE PARAMETERS FOR TESTING
 
 # Trainer Choice (Options: QL, SARSA, DQN, PPO, A3C, A2C, DDPG)
-trainer_choice = 'DQN'
+trainer_choice = 'QL'
 second_trainer_choice = '' # leave as empty string ('') for none
 
 # Collusion Mitigation Mechanism
@@ -70,7 +70,7 @@ num_agents = 2
 k = 1
 m = 15
 convergence = 100000
-sessions = 1
+sessions = 0
 
 # Hyperparameters
 alpha = 0.1 # Change these to test Calvano results
@@ -78,14 +78,15 @@ beta = 0.000005 # Change these to test Calvano results
 delta = 0.95
 log_frequency = 50000
 dqn_epsilon_timesteps = 150000
+on_policy_steps = 20000
 
 # Performance and Testing
-overwrite_id = 1
+overwrite_id = 0
 num_gpus = 0
 len_eval_after_training = 1000
 len_eval_after_deviation = 20
 
-if trainer_choice in ['QL', 'SARSA', 'DQN', 'PPO', 'A2C']:
+if trainer_choice in ['QL', 'SARSA', 'DQN', 'A2C', 'A3C', 'PPO']:
     state_space = 'discrete'
 else:
     state_space = 'continuous'
@@ -101,6 +102,8 @@ if trainer_choice in ['QL', 'SARSA']:
     savefile += '_alpha_' + str(alpha).replace('.', '_') + '_beta_' + str(beta).replace('.', '_')
 elif trainer_choice == 'DQN' or second_trainer_choice == 'DQN':
     savefile += '_epstep_' + str(dqn_epsilon_timesteps)
+elif trainer_choice == 'A3C' or trainer_choice == 'PPO':
+    savefile += '_onpolsteps_' + str(on_policy_steps)
 
 config = {
     'env_config': {
@@ -122,12 +125,10 @@ path = os.path.abspath(os.getcwd())
 def eval_then_unload(observation, len_eval):
     '''Used to compute actions for certain observations and unload the results that are automatically pickled.'''
     for i in range(len_eval):
-        # action = trainer.compute_action(observation)
         action = {}
         for agent_id, agent_obs in observation.items():
             policy_id = config['multiagent']['policy_mapping_fn'](agent_id)
             action[agent_id] = trainer.compute_action(observation=agent_obs, policy_id=policy_id)
-            # action[agent_id] = trainer.compute_action(agent_obs) # From before multi-agent integration
         observation, _, _, _ = env.step(action)
 
     action_history_list = []
@@ -149,6 +150,9 @@ if trainer_choice not in ['QL', 'SARSA']:
     use_pickle = True
     if trainer_choice == 'DQN' or second_trainer_choice == 'DQN':
         max_steps = dqn_epsilon_timesteps + 5000
+    elif trainer_choice == 'A3C' or trainer_choice == 'PPO':
+        max_steps = on_policy_steps
+        len_eval_after_training = 2500
     else:
         max_steps = 50000
 
@@ -227,33 +231,29 @@ if trainer_choice not in ['QL', 'SARSA']:
                     "final_epsilon": 0.000001,
                     "epsilon_timesteps": dqn_epsilon_timesteps,  # Timesteps over which to anneal epsilon. Originally set to 250000.
                 }
-
             # For eval afterward
             config_copy = config.copy()
             config_copy['explore'] = False
             trainer = DQNTrainer(config = config_copy, env = 'Bertrand')
         elif trainer_choice == 'PPO':
             from ray.rllib.agents.ppo import PPOTrainer
-            config['num_workers'] = 2
+            config['num_workers'] = 1
             # config['lr'] = 0.001
-
             # For eval afterward
             config_copy = config.copy()
             config_copy['explore'] = False
             trainer = PPOTrainer(config = config_copy, env = 'Bertrand')
         elif trainer_choice == 'A3C':
             from ray.rllib.agents.a3c import A3CTrainer
-            config['num_workers'] = 2
+            config['num_workers'] = 1
             # config['lr'] = 0.01
-
             # For eval afterward
             config_copy = config.copy()
             config_copy['explore'] = False
             trainer = A3CTrainer(config = config_copy, env = 'Bertrand')
         elif trainer_choice == 'A2C':
             from ray.rllib.agents.a3c import A2CTrainer
-            config['num_workers'] = 2
-
+            config['num_workers'] = 1
             # For eval afterward
             config_copy = config.copy()
             config_copy['explore'] = False
@@ -261,14 +261,12 @@ if trainer_choice not in ['QL', 'SARSA']:
         elif trainer_choice == 'MADDPG':
             from ray.rllib.contrib.maddpg import MADDPGTrainer
             config['agent_id'] = 0
-
             # For eval afterward
             config_copy = config.copy()
             config_copy['explore'] = False
             trainer = MADDPGTrainer(config = config_copy, env = 'Bertrand')
         elif trainer_choice == 'DDPG':
             from ray.rllib.agents.ddpg import DDPGTrainer
-
             # For eval afterward
             config_copy = config.copy()
             config_copy['explore'] = False
@@ -286,18 +284,23 @@ if trainer_choice not in ['QL', 'SARSA']:
         )
 
         trainer.restore(checkpoint_path=analysis.best_checkpoint)
+
+        # analysis = tune.run(
+        #     trainer_choice, 
+        #     # num_samples = 4,
+        #     config = config_copy, 
+        #     local_dir = './log', 
+        #     stop = {'training_iteration': sessions},
+        #     mode = 'max',
+        #     metric = 'episode_reward_mean',
+        #     restore = analysis.best_checkpoint,
+        #     checkpoint_at_end = True
+        # )
     else:
         # Dual algorithm training
 
         register_env('Bertrand', lambda env_config: env)
         ray.init(num_cpus=4)
-
-        # policies = {
-        #     "ppo_policy": (PPOTorchPolicy if args.torch or args.mixed_torch_tf else
-        #                    PPOTFPolicy, obs_space, act_space, PPO_CONFIG),
-        #     "dqn_policy": (DQNTorchPolicy if args.torch else DQNTFPolicy,
-        #                    obs_space, act_space, DQN_CONFIG),
-        # }
 
         if state_space == 'discrete':
             policies = {
@@ -394,7 +397,7 @@ else:
     max_steps = 2500000
     # for alpha = 0.15 beta = 0.00001 its 1500000, 
     # for alpha = 0.1 beta = 0.000005 its 2500000, 
-    # for alpha = 0.075 beta = 0.0000025 its 4000000, nah
+    # for alpha = 0.075 beta = 0.0000025 its 4000000,
     #for alpha = 0.05 beta = 0.0000025 its 4000000
     use_pickle = False
 
@@ -440,9 +443,6 @@ else:
         )
 
     trainer.train()
-
-    # with open('./q_tables/' + savefile + '.pkl', 'wb') as f:
-    #     pickle.dump(trainer.q_table, f)
 
     env.plot(overwrite_id=overwrite_id)
     env.plot_last(last_n=100, title_str='_train', overwrite_id=overwrite_id)

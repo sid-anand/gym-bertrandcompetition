@@ -54,6 +54,8 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         # Index of Horizontal Differentiation
         self.mu = mu
 
+        ######################################################################
+
         # Nash Equilibrium Price
         def nash_func(p):
             ''' Derviative for demand function '''
@@ -74,6 +76,8 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         self.pN = nash_sol.x[0]
         print('Nash Price:', self.pN)
 
+        ######################################################################
+
         # Monopoly Equilibrium Price
         def monopoly_func(p):   
             return -(p[0] - c_i) * self.demand(self.a, p, self.mu, 0)
@@ -81,6 +85,8 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         monopoly_sol = optimize.minimize(monopoly_func, 0)
         self.pM = monopoly_sol.x[0]
         print('Monopoly Price:', self.pM)
+
+        #####################################################################
 
         self.low_price = self.pN - xi * (self.pM - self.pN)
         self.high_price = self.pM + xi * (self.pM - self.pN)
@@ -107,21 +113,6 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         if supervisor:
             self.observation_spaces['supervisor'] = obs_space
             self.action_spaces['supervisor'] = Box(np.array([0]), np.array([self.num_agents]))
-
-        # # MultiAgentEnv Action Space
-        # self.low_price = self.pN - xi * (self.pM - self.pN)
-        # self.high_price = self.pM + xi * (self.pM - self.pN)
-        # self.action_space = Box(np.array([self.low_price]), np.array([self.high_price]))
-        
-        # # MultiAgentEnv Observation Space
-        # if k > 0:
-        #     self.numeric_low = np.array([self.low_price] * (k * num_agents))
-        #     numeric_high = np.array([self.high_price] * (k * num_agents))
-        #     self.observation_space = Box(self.numeric_low, numeric_high)
-        # else:
-        #     self.numeric_low = np.array([self.low_price] * num_agents)
-        #     numeric_high = np.array([self.high_price] * num_agents)
-        #     self.observation_space = Box(self.numeric_low, numeric_high)
 
         self.reward_range = (-float('inf'), float('inf'))
         self.current_step = None
@@ -152,7 +143,9 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         ''' MultiAgentEnv Step '''
 
         actions_list = np.array(list(actions_dict.values())).flatten()
-        # actions_list[0] = 1.8
+        # actions_list[1] = 1.81
+        # if actions_list[0] > self.low_price + 0.1:
+        #     actions_list[0] = actions_list[0] - 0.1
         # print(actions_list)
 
         # 20s
@@ -297,10 +290,10 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
 
         if direction == 'down':
             # First agent deviates to lowest price
-            deviate_actions_dict[self.agents[0]] = self.low_price
+            deviate_actions_dict[self.agents[0]] = self.low_price + 0.1
         elif direction == 'up':
             # First agent deviates to highest price
-            deviate_actions_dict[self.agents[0]] = self.high_price
+            deviate_actions_dict[self.agents[0]] = self.high_price - 0.1
 
         for agent in range(1, self.num_agents):
             # All other agents remain at previous price (large assumption)

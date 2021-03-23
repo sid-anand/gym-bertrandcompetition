@@ -129,6 +129,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # print('Nash Profit:', nash_profit)
         # print('Monopoly Profit:', monopoly_profit)
 
+        ###############################################################################
+
         # Profit Gain Plot
 
         # val = []
@@ -174,19 +176,6 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             self.observation_spaces['supervisor'] = obs_space
             self.action_spaces['supervisor'] = Discrete(num_agents)
 
-        # MultiAgentEnv Action Space
-        # self.action_space = Discrete(m)
-        
-        # MultiAgentEnv Observation Space
-        # if k > 0:
-        #     self.numeric_low = np.array([0] * (k * num_agents))
-        #     numeric_high = np.array([m] * (k * num_agents))
-        #     self.observation_space = Box(self.numeric_low, numeric_high, dtype=int)
-        # else:
-        #     self.numeric_low = np.array([0] * num_agents)
-        #     numeric_high = np.array([m] * num_agents)
-        #     self.observation_space = Box(self.numeric_low, numeric_high, dtype=int)
-
         self.action_price_space = np.linspace(self.pN - xi * (self.pM - self.pN), self.pM + xi * (self.pM - self.pN), m)
         self.reward_range = (-float('inf'), float('inf'))
         self.current_step = None
@@ -220,6 +209,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         actions_idx = np.array(list(actions_dict.values())).flatten()
         # actions_idx[1] = 1
+        # if actions_idx[0] > 1:
+        #     actions_idx[0] = actions_idx[0] - 2
         # print(actions_idx)
 
         # 21 both want to charge higher price to "win", but may be better off both pricing low
@@ -365,8 +356,6 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.current_step += 1
 
         # print(observation, reward, done, info)
-        # print(actions_idx)
-        # print(reward)
 
         return observation, reward, done, info
 
