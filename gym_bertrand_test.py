@@ -17,6 +17,7 @@ import os
 
 import ray
 from ray import tune
+import pandas as pd
 from ray.rllib.agents.trainer_template import build_trainer
 from ray.rllib.agents.dqn.dqn import DEFAULT_CONFIG as DQN_CONFIG
 from ray.rllib.agents.dqn.dqn_tf_policy import DQNTFPolicy
@@ -70,7 +71,7 @@ num_agents = 2
 k = 1
 m = 15
 convergence = 100000
-sessions = 0
+sessions = 1
 
 # Hyperparameters
 alpha = 0.1 # Change these to test Calvano results
@@ -373,6 +374,29 @@ if trainer_choice not in ['QL', 'SARSA']:
     env.plot_last(last_n=100, title_str='_train', overwrite_id=overwrite_id)
     env.plot_last(last_n=1000, window=100, title_str='_train', overwrite_id=overwrite_id)
 
+    # if supervisor:
+    #     demand_change = []
+    #     with open('./arrays/' + savefile + 'demand.pkl', 'rb') as f:
+    #         while True:
+    #             try:
+    #                 demand_change.append(pickle.load(f).tolist())
+    #             except EOFError:
+    #                 break
+
+    #     demand_change_array = np.array(demand_change).transpose()
+
+    #     x = np.arange(len(demand_change_array[0]))
+    #     plt.plot(x, demand_change_array[0], 'c', label='agent_0', alpha=0.75)
+    #     plt.plot(x, demand_change_array[1], 'y', label='agent_1', alpha=0.75)
+    #     plt.plot(x, pd.Series(demand_change_array[0]).rolling(window=1000).mean(), alpha=0.5, label='agent_0 MA')
+    #     plt.plot(x, pd.Series(demand_change_array[1]).rolling(window=1000).mean(), alpha=0.5, label='agent_1 MA')
+    #     plt.xlabel('Steps')
+    #     plt.ylabel('Absolute Demand Change')
+    #     plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
+    #     plt.legend()
+    #     plt.savefig('figures/demand_error' + str(overwrite_id))
+    #     plt.clf()
+
     if not second_trainer_choice:
         # Eval
         observation = env.one_step()
@@ -446,6 +470,18 @@ else:
 
     env.plot(overwrite_id=overwrite_id)
     env.plot_last(last_n=100, title_str='_train', overwrite_id=overwrite_id)
+
+    # x = np.arange(len(env.price_error[0]))
+    # plt.plot(x, env.price_error[0], 'c', label='agent_0', alpha=0.75)
+    # plt.plot(x, env.price_error[1], 'y', label='agent_1', alpha=0.75)
+    # plt.plot(x, pd.Series(env.price_error[0]).rolling(window=1000).mean(), alpha=0.5, label='agent_0 MA')
+    # plt.plot(x, pd.Series(env.price_error[1]).rolling(window=1000).mean(), alpha=0.5, label='agent_1 MA')
+    # plt.xlabel('Steps')
+    # plt.ylabel('Absolute Price Change')
+    # plt.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
+    # plt.legend()
+    # plt.savefig('figures/price_error' + str(overwrite_id))
+    # plt.clf()
 
     # observation = env.one_step()
     # trainer.eval(observation, n=len_eval_after_training)

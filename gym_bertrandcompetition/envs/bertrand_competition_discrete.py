@@ -191,6 +191,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.path = path
         self.savefile = savefile
 
+        # self.price_error = [[],[]]
+
         for agent in self.agents:
             if agent not in self.action_history:
                 self.action_history[agent] = [self.action_spaces[agent].sample()]
@@ -231,6 +233,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = np.clip(np.min(actions_idx) - 2, 0, self.m - 1)
+        # self.price_error[0].append(np.abs(self.action_price_space.take(actions_idx[0]) - self.action_price_space.take(temp_actions_idx[0])))
+        # self.price_error[1].append(np.abs(self.action_price_space.take(actions_idx[1]) - self.action_price_space.take(temp_actions_idx[1])))
         # actions_idx = np.array(temp_actions_idx)
         # # print(actions_idx)
 
@@ -249,13 +253,17 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = np.clip(np.min(actions_idx) - 2, 0, self.m - 1)
+        # self.price_error[0].append(np.abs(self.action_price_space.take(actions_idx[0]) - self.action_price_space.take(temp_actions_idx[0])))
+        # self.price_error[1].append(np.abs(self.action_price_space.take(actions_idx[1]) - self.action_price_space.take(temp_actions_idx[1])))
         # actions_idx = np.array(temp_actions_idx)
-        # # print(actions_idx)
+        # # # print(actions_idx)
 
         # 26
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = 1
+        # self.price_error[0].append(np.abs(self.action_price_space.take(actions_idx[0]) - self.action_price_space.take(temp_actions_idx[0])))
+        # self.price_error[1].append(np.abs(self.action_price_space.take(actions_idx[1]) - self.action_price_space.take(temp_actions_idx[1])))
         # actions_idx = np.array(temp_actions_idx)
         # # print(actions_idx)
 
@@ -272,15 +280,19 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = np.min(actions_idx) // 2
+        # self.price_error[0].append(np.abs(self.action_price_space.take(actions_idx[0]) - self.action_price_space.take(temp_actions_idx[0])))
+        # self.price_error[1].append(np.abs(self.action_price_space.take(actions_idx[1]) - self.action_price_space.take(temp_actions_idx[1])))
         # actions_idx = np.array(temp_actions_idx)
-        # print(actions_idx)
+        # # print(actions_idx)
 
         # 29
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = np.min(actions_idx) // 3
+        # self.price_error[0].append(np.abs(self.action_price_space.take(actions_idx[0]) - self.action_price_space.take(temp_actions_idx[0])))
+        # self.price_error[1].append(np.abs(self.action_price_space.take(actions_idx[1]) - self.action_price_space.take(temp_actions_idx[1])))
         # actions_idx = np.array(temp_actions_idx)
-        # print(actions_idx)
+        # # print(actions_idx)
 
         # Extra
         # actions_idx = np.array([np.min(actions_idx)] * 2)
@@ -318,14 +330,21 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             # total_demand = 0
             # for i in range(self.num_agents):
             #     total_demand += self.demand(self.a, self.prices, self.mu, i)
+            # demand_change = [0] * self.num_agents
             for i in range(self.num_agents):
                 if i == actions_idx[-1]:
                     reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost)
                     # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) + self.proportion_boost
+                    # demand_change[i] = np.abs(self.demand(self.a, self.prices, self.mu, i) - (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost))
                 else:
                     reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * ((2 - self.proportion_boost) / (self.num_agents - 1)))
                     # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) - self.proportion_boost
+                    # demand_change[i] = np.abs(self.demand(self.a, self.prices, self.mu, i) - (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost))
                 # reward[i] = (self.prices[i] - self.c_i) * (total_demand * demand_proportion)
+
+            # if self.use_pickle:
+            #     with open(self.path + './arrays/' + self.savefile + 'demand.pkl', 'ab') as f:
+            #         pickle.dump(demand_change, f)
         else:
             for i in range(self.num_agents):
                 reward[i] = (self.prices[i] - self.c_i) * self.demand(self.a, self.prices, self.mu, i)
