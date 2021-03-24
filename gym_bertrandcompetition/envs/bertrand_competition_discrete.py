@@ -210,44 +210,36 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         ''' MultiAgentEnv Step '''
 
         actions_idx = np.array(list(actions_dict.values())).flatten()
-        # actions_idx[1] = 1
-        # if actions_idx[0] > 1:
-        #     actions_idx[0] = actions_idx[0] - 2
-        # print(actions_idx)
 
-        # 21 both want to charge higher price to "win", but may be better off both pricing low
+        # Downward Price Step, below Nash
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = 0
         # actions_idx = np.array(temp_actions_idx)
-        # # print(actions_idx)
 
-        # 22
+        # Upward Price Step, above Monopoly
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = self.m - 1
         # temp_actions_idx[1 - np.argmax(actions_idx)] = np.max(actions_idx)
         # actions_idx = np.array(temp_actions_idx)
-        # print(actions_idx)
 
-        # 23
+        # Constant Decrease
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = np.clip(np.min(actions_idx) - 2, 0, self.m - 1)
         # self.price_error[0].append(np.abs(self.action_price_space.take(actions_idx[0]) - self.action_price_space.take(temp_actions_idx[0])))
         # self.price_error[1].append(np.abs(self.action_price_space.take(actions_idx[1]) - self.action_price_space.take(temp_actions_idx[1])))
         # actions_idx = np.array(temp_actions_idx)
-        # # print(actions_idx)
 
-        # 24
+        # Downward Price Step with Original Demand, below Nash
         # self.prices = self.action_price_space.take(actions_idx)
         # demand = [self.demand(self.a, self.prices, self.mu, 0), self.demand(self.a, self.prices, self.mu, 1)]
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = 0
         # actions_idx = np.array(temp_actions_idx)
-        # # print(actions_idx)
 
-        # 25
+        # Constant Decrease with Original Demand
         # self.prices = self.action_price_space.take(actions_idx)
         # demand = [self.demand(self.a, self.prices, self.mu, 0), self.demand(self.a, self.prices, self.mu, 1)]
         # temp_actions_idx = [0, 0]
@@ -256,56 +248,38 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # self.price_error[0].append(np.abs(self.action_price_space.take(actions_idx[0]) - self.action_price_space.take(temp_actions_idx[0])))
         # self.price_error[1].append(np.abs(self.action_price_space.take(actions_idx[1]) - self.action_price_space.take(temp_actions_idx[1])))
         # actions_idx = np.array(temp_actions_idx)
-        # # # print(actions_idx)
 
-        # 26
+        # Downward Price Step, at Nash
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = 1
         # self.price_error[0].append(np.abs(self.action_price_space.take(actions_idx[0]) - self.action_price_space.take(temp_actions_idx[0])))
         # self.price_error[1].append(np.abs(self.action_price_space.take(actions_idx[1]) - self.action_price_space.take(temp_actions_idx[1])))
         # actions_idx = np.array(temp_actions_idx)
-        # # print(actions_idx)
 
-        # 27
+        # Upward Price Step with Original Demand
         # self.prices = self.action_price_space.take(actions_idx)
         # demand = [self.demand(self.a, self.prices, self.mu, 0), self.demand(self.a, self.prices, self.mu, 1)]
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = self.m - 1
         # temp_actions_idx[1 - np.argmax(actions_idx)] = np.max(actions_idx)
         # actions_idx = np.array(temp_actions_idx)
-        # # print(actions_idx)
 
-        # 28 
+        # Fractional Decrease, Half
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = np.min(actions_idx) // 2
         # self.price_error[0].append(np.abs(self.action_price_space.take(actions_idx[0]) - self.action_price_space.take(temp_actions_idx[0])))
         # self.price_error[1].append(np.abs(self.action_price_space.take(actions_idx[1]) - self.action_price_space.take(temp_actions_idx[1])))
         # actions_idx = np.array(temp_actions_idx)
-        # # print(actions_idx)
 
-        # 29
+        # Fractional Decrease, Third
         # temp_actions_idx = [0, 0]
         # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
         # temp_actions_idx[1 - np.argmax(actions_idx)] = np.min(actions_idx) // 3
         # self.price_error[0].append(np.abs(self.action_price_space.take(actions_idx[0]) - self.action_price_space.take(temp_actions_idx[0])))
         # self.price_error[1].append(np.abs(self.action_price_space.take(actions_idx[1]) - self.action_price_space.take(temp_actions_idx[1])))
         # actions_idx = np.array(temp_actions_idx)
-        # # print(actions_idx)
-
-        # Extra
-        # actions_idx = np.array([np.min(actions_idx)] * 2)
-        # self.prices = self.action_price_space.take(actions_idx)
-        # demand = [self.demand(self.a, self.prices, self.mu, 0), self.demand(self.a, self.prices, self.mu, 1)]
-        # actions_idx[0] = 0
-        # print(actions_idx)
-        # temp_actions_idx = [self.m - 1,self.m - 1]
-        # temp_actions_idx = [0, 0]
-        # temp_actions_idx[np.argmin(actions_idx)] = np.max(actions_idx)
-        # temp_actions_idx[np.argmax(actions_idx)] = np.min(actions_idx)
-        # actions_idx = np.array(temp_actions_idx)
-        # print(actions_idx)
 
         if self.use_pickle:
             with open(self.path + './arrays/' + self.savefile + '.pkl', 'ab') as f:
@@ -373,8 +347,6 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             info['supervisor'] = {}
 
         self.current_step += 1
-
-        # print(observation, reward, done, info)
 
         return observation, reward, done, info
 

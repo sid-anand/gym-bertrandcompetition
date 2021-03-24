@@ -471,6 +471,8 @@ else:
     env.plot(overwrite_id=overwrite_id)
     env.plot_last(last_n=100, title_str='_train', overwrite_id=overwrite_id)
 
+    # Price Error Plot
+
     # x = np.arange(len(env.price_error[0]))
     # plt.plot(x, env.price_error[0], 'c', label='agent_0', alpha=0.75)
     # plt.plot(x, env.price_error[1], 'y', label='agent_1', alpha=0.75)

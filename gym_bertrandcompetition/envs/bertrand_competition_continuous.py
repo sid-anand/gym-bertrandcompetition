@@ -143,80 +143,66 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
         ''' MultiAgentEnv Step '''
 
         actions_list = np.array(list(actions_dict.values())).flatten()
-        # actions_list[1] = 1.81
-        # if actions_list[0] > self.low_price + 0.1:
-        #     actions_list[0] = actions_list[0] - 0.1
-        # print(actions_list)
 
-        # 20s
-        # 21 both want to charge higher price to "win", but may be better off both pricing low
+        # Downward Price Step, below Nash
         # temp_actions_list = [0, 0]
         # temp_actions_list[np.argmax(actions_list)] = np.min(actions_list)
         # temp_actions_list[1 - np.argmax(actions_list)] = self.low_price
         # actions_list = np.array(temp_actions_list)
-        # # print(actions_list)
 
-        # 22
+        # Upward Price Step, above Monopoly
         # temp_actions_list = [0, 0]
         # temp_actions_list[np.argmax(actions_list)] = self.high_price
         # temp_actions_list[1 - np.argmax(actions_list)] = np.max(actions_list)
         # actions_list = np.array(temp_actions_list)
-        # # print(actions_list)
 
-        # 23
+        # Constant Decrease
         # temp_actions_list = [0, 0]
         # temp_actions_list[np.argmax(actions_list)] = np.min(actions_list)
         # temp_actions_list[1 - np.argmax(actions_list)] = np.clip(np.min(actions_list) - 0.1, self.low_price, self.high_price)
         # actions_list = np.array(temp_actions_list)
-        # # print(actions_list)
 
-        # 24
+        # Downward Price Step with Original Demand, below Nash
         # self.prices = actions_list[:self.num_agents]
         # demand = [self.demand(self.a, self.prices, self.mu, 0), self.demand(self.a, self.prices, self.mu, 1)]
         # temp_actions_list = [0, 0]
         # temp_actions_list[np.argmax(actions_list)] = np.min(actions_list)
         # temp_actions_list[1 - np.argmax(actions_list)] = self.low_price
         # actions_list = np.array(temp_actions_list)
-        # # print(actions_list)
 
-        # 25
+        # Constant Decrease with Original Demand
         # self.prices = actions_list[:self.num_agents]
         # demand = [self.demand(self.a, self.prices, self.mu, 0), self.demand(self.a, self.prices, self.mu, 1)]
         # temp_actions_list = [0, 0]
         # temp_actions_list[np.argmax(actions_list)] = np.min(actions_list)
         # temp_actions_list[1 - np.argmax(actions_list)] = np.clip(np.min(actions_list) - 0.1, self.low_price, self.high_price)
         # actions_list = np.array(temp_actions_list)
-        # # print(actions_list)
 
-        # 26
+        # Downward Price Step, at Nash
         # temp_actions_list = [0, 0]
         # temp_actions_list[np.argmax(actions_list)] = np.min(actions_list)
         # temp_actions_list[1 - np.argmax(actions_list)] = self.low_price + 0.05
         # actions_list = np.array(temp_actions_list)
-        # # print(actions_list)
 
-        # 27
+        # Upward Price Step with Original Demand
         # self.prices = actions_list[:self.num_agents]
         # demand = [self.demand(self.a, self.prices, self.mu, 0), self.demand(self.a, self.prices, self.mu, 1)]
         # temp_actions_list = [0, 0]
         # temp_actions_list[np.argmax(actions_list)] = self.high_price
         # temp_actions_list[1 - np.argmax(actions_list)] = np.max(actions_list)
         # actions_list = np.array(temp_actions_list)
-        # # print(actions_list)
 
-        # 28 
+        # Fractional Decrease, Half
         # temp_actions_list = [0, 0]
         # temp_actions_list[np.argmax(actions_list)] = np.min(actions_list)
         # temp_actions_list[1 - np.argmax(actions_list)] = ((np.min(actions_list) - self.low_price) // 2) + self.low_price
         # actions_list = np.array(temp_actions_list)
-        # # print(actions_list)
 
-        # 29
+        # Fractional Decrease, Third
         # temp_actions_list = [0, 0]
         # temp_actions_list[np.argmax(actions_list)] = np.min(actions_list)
         # temp_actions_list[1 - np.argmax(actions_list)] = ((np.min(actions_list) - self.low_price) // 3) + self.low_price
         # actions_list = np.array(temp_actions_list)
-        # # print(actions_list)
 
         if self.use_pickle:
             with open(self.path + './arrays/' + self.savefile + '.pkl', 'ab') as f:
@@ -267,8 +253,6 @@ class BertrandCompetitionContinuousEnv(MultiAgentEnv):
             info['supervisor'] = {}
 
         self.current_step += 1
-
-        # print(observation, reward, done, info)
 
         return observation, reward, done, info
 
