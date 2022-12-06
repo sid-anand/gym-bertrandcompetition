@@ -1,7 +1,7 @@
-import gym
-import gym_bertrandcompetition
+# import gym
+# import gym_bertrandcompetition
 from gym_bertrandcompetition.envs.bertrand_competition_discrete import BertrandCompetitionDiscreteEnv
-from gym_bertrandcompetition.envs.bertrand_competition_continuous import BertrandCompetitionContinuousEnv
+# from gym_bertrandcompetition.envs.bertrand_competition_continuous import BertrandCompetitionContinuousEnv
 from agents.q_learner import Q_Learner
 # from agents.sarsa import SARSA
 # from agents.combo_multiagent import custom_training_workflow_ppo_dqn
@@ -11,8 +11,8 @@ from agents.q_learner import Q_Learner
 
 ##################################################
 
-import argparse
-import gym
+# import argparse
+# import gym
 import os
 
 # import ray
@@ -46,15 +46,15 @@ import os
 
 ##################################################
 
-import os
-import pickle
-import ray
-from ray import tune
+# import os
+# import pickle
+# import ray
+# from ray import tune
 # import tensorflow as tf
-import numpy as np
-import matplotlib.pyplot as plt
-from ray.tune.registry import register_env
-from ray.tune.logger import pretty_print
+# import numpy as np
+# import matplotlib.pyplot as plt
+# from ray.tune.registry import register_env
+# from ray.tune.logger import pretty_print
 
 # CHANGE PARAMETERS FOR TESTING
 
@@ -126,28 +126,28 @@ config = {
 path = os.path.abspath(os.getcwd())
 
 
-def eval_then_unload(observation, len_eval):
-    '''Used to compute actions for certain observations and unload the results that are automatically pickled.'''
-    for i in range(len_eval):
-        action = {}
-        for agent_id, agent_obs in observation.items():
-            policy_id = config['multiagent']['policy_mapping_fn'](agent_id)
-            action[agent_id] = trainer.compute_action(
-                observation=agent_obs, policy_id=policy_id)
-        observation, _, _, _ = env.step(action)
+# def eval_then_unload(observation, len_eval):
+#     '''Used to compute actions for certain observations and unload the results that are automatically pickled.'''
+#     for i in range(len_eval):
+#         action = {}
+#         for agent_id, agent_obs in observation.items():
+#             policy_id = config['multiagent']['policy_mapping_fn'](agent_id)
+#             action[agent_id] = trainer.compute_action(
+#                 observation=agent_obs, policy_id=policy_id)
+#         observation, _, _, _ = env.step(action)
 
-    action_history_list = []
-    with open(pklfile, 'rb') as f:
-        while True:
-            try:
-                action_history_list.append(pickle.load(f).tolist())
-            except EOFError:
-                break
+#     action_history_list = []
+#     with open(pklfile, 'rb') as f:
+#         while True:
+#             try:
+#                 action_history_list.append(pickle.load(f).tolist())
+#             except EOFError:
+#                 break
 
-    action_history_array = np.array(action_history_list).transpose()
-    for i in range(num_agents):
-        env.action_history[env.agents[i]].extend(
-            action_history_array[i].tolist())
+#     action_history_array = np.array(action_history_list).transpose()
+#     for i in range(num_agents):
+#         env.action_history[env.agents[i]].extend(
+#             action_history_array[i].tolist())
 
 
 # if trainer_choice not in ['QL', 'SARSA']:
@@ -432,7 +432,7 @@ def eval_then_unload(observation, len_eval):
 #     os.remove(pklfile)
 
 # else:
-    # Algorithms from scratch
+# Algorithms from scratch
 
 max_steps = 2500000
 # for alpha = 0.15 beta = 0.00001 its 1500000,
