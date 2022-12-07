@@ -7,5 +7,5 @@ __pycache__/
 arrays/
 q_tables/
 log/
-figures/
+figures/*.png
 .DS_Store
