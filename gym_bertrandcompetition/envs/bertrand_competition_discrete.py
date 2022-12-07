@@ -20,8 +20,8 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
     def __init__(
             self, 
             num_agents = 2, 
-            c_i = 1, 
-            a_minus_c_i = 1, 
+            c = [1, 1], 
+            a_minus_c = [1, 1], 
             a_0 = 0, 
             mu = 0.25, 
             delta = 0.95, 
@@ -46,13 +46,13 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.k = k
 
         # Marginal Cost
-        self.c_i = c_i
+        self.c = c
 
         # Number of Discrete Prices
         self.m = m
 
         # Product Quality Indexes
-        a = np.array([c_i + a_minus_c_i] * num_agents)
+        a = np.array(c) + np.array(a_minus_c)
         self.a = a
 
         # Product Quality Index: Outside Good
@@ -73,15 +73,15 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             for i in range(num_agents):
                 term = np.exp((a[i] - p[i]) / mu)
                 first_term = term / denominator
-                second_term = (np.exp((2 * (a[i] - p[i])) / mu) * (-c_i + p[i])) / ((denominator ** 2) * mu)
-                third_term = (term * (-c_i + p[i])) / (denominator * mu)
-                function_list.append((p[i] - c_i) * (first_term + second_term - third_term))
+                second_term = (np.exp((2 * (a[i] - p[i])) / mu) * (-c[i] + p[i])) / ((denominator ** 2) * mu)
+                third_term = (term * (-c[i] + p[i])) / (denominator * mu)
+                function_list.append((p[i] - c[i]) * (first_term + second_term - third_term))
             return function_list
 
         # Finding root of derivative for demand function
         nash_sol = optimize.root(nash_func, [2] * num_agents)
         self.pN = nash_sol.x[0]
-        print('Nash Price:', self.pN)
+        print('Nash Price (for Agent 0):', self.pN)
 
         # # Finding Nash Price by iteration
         # # Make sure this tries all possibilities
@@ -103,11 +103,11 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         # Monopoly Equilibrium Price
         def monopoly_func(p):
-            return -(p[0] - c_i) * self.demand(self.a, p, self.mu, 0)
+            return -(p[0] - c[0]) * self.demand(self.a, p, self.mu, 0)
 
         monopoly_sol = optimize.minimize(monopoly_func, 0)
         self.pM = monopoly_sol.x[0]
-        print('Monopoly Price:', self.pM)
+        print('Monopoly Price (for Agent 0):', self.pM)
 
         # # Finding Monopoly Price by iteration
         # # Make sure this tries all possibilities
@@ -307,22 +307,22 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             # demand_change = [0] * self.num_agents
             for i in range(self.num_agents):
                 if i == actions_idx[-1]:
-                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost)
+                    reward[i] = (self.prices[i] - self.c[i]) * (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost)
                     # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) + self.proportion_boost
                     # demand_change[i] = np.abs(self.demand(self.a, self.prices, self.mu, i) - (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost))
                 else:
-                    reward[i] = (self.prices[i] - self.c_i) * (self.demand(self.a, self.prices, self.mu, i) * ((2 - self.proportion_boost) / (self.num_agents - 1)))
+                    reward[i] = (self.prices[i] - self.c[i]) * (self.demand(self.a, self.prices, self.mu, i) * ((2 - self.proportion_boost) / (self.num_agents - 1)))
                     # demand_proportion = (self.demand(self.a, self.prices, self.mu, i) / total_demand) - self.proportion_boost
                     # demand_change[i] = np.abs(self.demand(self.a, self.prices, self.mu, i) - (self.demand(self.a, self.prices, self.mu, i) * self.proportion_boost))
-                # reward[i] = (self.prices[i] - self.c_i) * (total_demand * demand_proportion)
+                # reward[i] = (self.prices[i] - self.c[i]) * (total_demand * demand_proportion)
 
             # if self.use_pickle:
             #     with open(self.path + './arrays/' + self.savefile + 'demand.pkl', 'ab') as f:
             #         pickle.dump(demand_change, f)
         else:
             for i in range(self.num_agents):
-                reward[i] = (self.prices[i] - self.c_i) * self.demand(self.a, self.prices, self.mu, i)
-                # reward[i] = (self.prices[i] - self.c_i) * demand[i]
+                reward[i] = (self.prices[i] - self.c[i]) * self.demand(self.a, self.prices, self.mu, i)
+                # reward[i] = (self.prices[i] - self.c[i]) * demand[i]
 
         reward = dict(zip(self.agents, reward))
 

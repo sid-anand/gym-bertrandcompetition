@@ -68,6 +68,8 @@ proportion_boost = 1.25
 
 # Parameters
 num_agents = 2
+c = [0.5, 1]
+a_minus_c = [1, 1]
 k = 1
 m = 15
 convergence = 100000
@@ -443,6 +445,8 @@ use_pickle = False
 
 env = BertrandCompetitionDiscreteEnv(
     num_agents=num_agents,
+    c=c,
+    a_minus_c=a_minus_c,
     k=k,
     m=m,
     max_steps=max_steps,
