@@ -81,6 +81,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         # Finding root of derivative for demand function
         nash_sol = optimize.root(nash_func, [2] * num_agents)
         self.pN = nash_sol.x[0]
+        print(nash_sol)
         print('Nash Price (for Agent 0):', self.pN)
 
         # # Finding Nash Price by iteration
@@ -103,10 +104,12 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         # Monopoly Equilibrium Price
         def monopoly_func(p):
-            return -(p[0] - c[0]) * self.demand(self.a, p, self.mu, 0)
+            demand = np.exp((a[0] - p[0]) / mu) / (np.exp((a[0] - p[0]) / mu) + np.exp(self.a_0 / mu))
+            return -(p[0] - c[0]) * demand
 
         monopoly_sol = optimize.minimize(monopoly_func, 0)
         self.pM = monopoly_sol.x[0]
+        print(monopoly_sol)
         print('Monopoly Price (for Agent 0):', self.pM)
 
         # # Finding Monopoly Price by iteration

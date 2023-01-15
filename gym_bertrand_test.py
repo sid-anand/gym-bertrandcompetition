@@ -68,7 +68,7 @@ proportion_boost = 1.25
 
 # Parameters
 num_agents = 2
-c = [0.5, 1]
+c = [1, 1]
 a_minus_c = [1, 1]
 k = 1
 m = 15
