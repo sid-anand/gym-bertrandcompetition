@@ -65,17 +65,14 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
 
         # Nash Equilibrium Price
         def nash_func(p):
-            ''' Derviative for demand function '''
+            ''' Returns list of derivatives of profit functions '''
             denominator = np.exp(a_0 / mu)
             for i in range(num_agents):
                 denominator += np.exp((a[i] - p[i]) / mu)
             function_list = []
             for i in range(num_agents):
                 term = np.exp((a[i] - p[i]) / mu)
-                first_term = term / denominator
-                second_term = (np.exp((2 * (a[i] - p[i])) / mu) * (-c[i] + p[i])) / ((denominator ** 2) * mu)
-                third_term = (term * (-c[i] + p[i])) / (denominator * mu)
-                function_list.append((p[i] - c[i]) * (first_term + second_term - third_term))
+                function_list.append((denominator * ((-1 / mu) * term * (p[i] - c[i]) + term) - (term * (p[i] - c[i])) * ((-1 / mu) * term)) / (denominator ** 2))
             return function_list
 
         # Finding root of derivative for demand function
