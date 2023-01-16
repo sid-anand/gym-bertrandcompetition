@@ -21,7 +21,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             self, 
             num_agents = 2, 
             c = [1, 1], 
-            a_minus_c = [1, 1], 
+            a = [1, 1], 
             a_0 = 0, 
             mu = 0.25, 
             delta = 0.95, 
@@ -52,7 +52,6 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
         self.m = m
 
         # Product Quality Indexes
-        a = np.array(c) + np.array(a_minus_c)
         self.a = a
 
         # Product Quality Index: Outside Good
@@ -76,7 +75,7 @@ class BertrandCompetitionDiscreteEnv(MultiAgentEnv):
             return function_list
 
         # Finding root of derivative for demand function
-        nash_sol = optimize.root(nash_func, [2] * num_agents)
+        nash_sol = optimize.root(nash_func, [1.7] * num_agents)
         self.pN = nash_sol.x[0]
         print(nash_sol)
         print('Nash Price (for Agent 0):', self.pN)
